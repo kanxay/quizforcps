@@ -78,9 +78,35 @@ export interface Setting {
   value: string;
 }
 
+export interface SystemSecuritySettings {
+  adminPassword: string;
+  passPercentage: number;
+  examAccessCode: string;
+  enableExamCode: boolean;
+  antiCheatingCopy: boolean;
+  detectTabSwitch: boolean;
+  limitOneAttempt: boolean;
+  showAnswerKeys: boolean;
+  requireFullscreen: boolean;
+}
+
+export interface StudentProfile {
+  fullName: string;
+  age: string;
+  gender: 'ຊາຍ' | 'ຍິງ';
+  phone?: string;
+  village: string;
+  district: string;
+  province: string;
+  organization?: string;
+  securityPin?: string;
+  isPinEnabled?: boolean;
+}
+
 export type AuthRole = 'student' | 'teacher' | 'admin' | null;
 
 export interface AuthSession {
   role: AuthRole;
   teacher?: Teacher;
+  student?: StudentProfile;
 }

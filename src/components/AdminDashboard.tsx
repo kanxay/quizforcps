@@ -18,8 +18,9 @@ import {
   Percent,
   Sliders,
   TrendingUp,
+  Database,
 } from 'lucide-react';
-import type { Teacher, Exam, Submission } from '../types';
+import type { Teacher, Exam, Submission, SystemSecuritySettings } from '../types';
 import {
   fetchTeachers,
   fetchExams,
@@ -31,6 +32,8 @@ import {
   getSettings,
   setAdminPassword,
   setPassPercentage,
+  getSystemSettings,
+  saveSystemSecuritySettings,
 } from '../lib/turso';
 import { exportSubmissionsToCSV, exportTeachersToCSV, exportFullBackupCSV } from '../lib/csvExport';
 
@@ -49,9 +52,16 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Settings
+  // Admin & Student Security Settings
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [passThresholdInput, setPassThresholdInput] = useState(50);
+  const [examAccessCodeInput, setExamAccessCodeInput] = useState('');
+  const [enableExamCodeInput, setEnableExamCodeInput] = useState(false);
+  const [antiCheatingCopyInput, setAntiCheatingCopyInput] = useState(true);
+  const [detectTabSwitchInput, setDetectTabSwitchInput] = useState(true);
+  const [limitOneAttemptInput, setLimitOneAttemptInput] = useState(false);
+  const [showAnswerKeysInput, setShowAnswerKeysInput] = useState(true);
+  const [requireFullscreenInput, setRequireFullscreenInput] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState<{ success: boolean; text: string } | null>(null);
 
@@ -85,12 +95,19 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
         fetchTeachers(),
         fetchExams(),
         fetchSubmissions(),
-        getSettings(),
+        getSystemSettings(),
       ]);
       setTeachers(tList);
       setExams(eList);
       setSubmissions(sList);
       setPassThresholdInput(sett.passPercentage);
+      setExamAccessCodeInput(sett.examAccessCode || '');
+      setEnableExamCodeInput(sett.enableExamCode);
+      setAntiCheatingCopyInput(sett.antiCheatingCopy);
+      setDetectTabSwitchInput(sett.detectTabSwitch);
+      setLimitOneAttemptInput(sett.limitOneAttempt);
+      setShowAnswerKeysInput(sett.showAnswerKeys);
+      setRequireFullscreenInput(sett.requireFullscreen);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);
@@ -260,11 +277,23 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
     setSavingSettings(true);
     setSettingsMsg(null);
     try {
+      const payload: Partial<SystemSecuritySettings> = {
+        passPercentage: Number(passThresholdInput),
+        examAccessCode: examAccessCodeInput.trim(),
+        enableExamCode: enableExamCodeInput,
+        antiCheatingCopy: antiCheatingCopyInput,
+        detectTabSwitch: detectTabSwitchInput,
+        limitOneAttempt: limitOneAttemptInput,
+        showAnswerKeys: showAnswerKeysInput,
+        requireFullscreen: requireFullscreenInput,
+      };
+
       if (adminPasswordInput.trim()) {
-        await setAdminPassword(adminPasswordInput.trim());
+        payload.adminPassword = adminPasswordInput.trim();
       }
-      await setPassPercentage(Number(passThresholdInput));
-      setSettingsMsg({ success: true, text: 'ບັນທຶກການຕັ້ງຄ່າສຳເລັດແລ້ວ' });
+
+      await saveSystemSecuritySettings(payload);
+      setSettingsMsg({ success: true, text: 'ບັນທຶກການຕັ້ງຄ່າລະບົບ & ຄວາມປອດໄພ (ທັງ Admin ແລະ ນັກຮຽນ) ສຳເລັດແລ້ວ!' });
       setAdminPasswordInput('');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -765,75 +794,233 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
             )}
           </div>
 
-          {/* Admin Security & Passing Score Config */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 max-w-lg">
-            <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-blue-600" />
-              ການຕັ້ງຄ່າລະບົບ & ຄວາມປອດໄພ
-            </h3>
-            <p className="text-xs text-slate-500 mb-4">
-              ປ່ຽນລະຫັດຜ່ານ Admin ແລະ ກຳນົດເກນເປີເຊັນຄະແນນຜ່ານ
-            </p>
+          {/* Settings Grid: Security & Database */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 1. Admin Security & Passing Score Config */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6">
+              <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-blue-600" />
+                1. ຄວາມປອດໄພ & ການຕັ້ງຄ່າ Admin
+              </h3>
+              <p className="text-xs text-slate-500 mb-4">
+                ປ່ຽນລະຫັດຜ່ານຜູ້ດູແລລະບົບ ແລະ ກຳນົດເກນເປີເຊັນຄະແນນຜ່ານມາດຕະຖານ
+              </p>
 
-            <form onSubmit={handleSaveAdminSettings} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ລະຫັດຜ່ານ Admin ໃໝ່ (ປະວ່າງໄວ້ຖ້າບໍ່ຕ້ອງການປ່ຽນ)
-                </label>
-                <input
-                  type="password"
-                  value={adminPasswordInput}
-                  onChange={(e) => setAdminPasswordInput(e.target.value)}
-                  placeholder="ລະຫັດຜ່ານ Admin ໃໝ່..."
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl"
-                />
+              <div className="space-y-4 text-xs">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    ລະຫັດຜ່ານ Admin ໃໝ່ (ປະວ່າງໄວ້ຖ້າບໍ່ຕ້ອງການປ່ຽນ)
+                  </label>
+                  <input
+                    type="password"
+                    value={adminPasswordInput}
+                    onChange={(e) => setAdminPasswordInput(e.target.value)}
+                    placeholder="ລະຫັດຜ່ານ Admin ໃໝ່..."
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    ເກນຄະແນນຜ່ານ (%) (Pass Percentage Threshold)
+                  </label>
+                  <input
+                    type="number"
+                    min={10}
+                    max={100}
+                    value={passThresholdInput}
+                    onChange={(e) => setPassThresholdInput(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm font-bold"
+                    required
+                  />
+                  <p className="mt-1 text-[11px] text-slate-400">ຄ່າເລີ່ມຕົ້ນ: 50% (ຄະແນນ 50% ຂຶ້ນໄປຈຶ່ງຖືວ່າຜ່ານ ແລະ ອອກໃບຢັ້ງຢືນໄດ້)</p>
+                </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ເກນຄະແນນຜ່ານ (%) (Pass Percentage Threshold)
-                </label>
-                <input
-                  type="number"
-                  min={10}
-                  max={100}
-                  value={passThresholdInput}
-                  onChange={(e) => setPassThresholdInput(Number(e.target.value))}
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm font-bold"
-                  required
-                />
-                <p className="mt-1 text-[11px] text-slate-400">ຄ່າເລີ່ມຕົ້ນ: 50%</p>
+            {/* 2. Student & Exam Security Policies */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6">
+              <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
+                <Lock className="w-4 h-4 text-blue-600" />
+                2. ຄວາມປອດໄພ & ກົດລະບຽບການສອບເສັງຂອງນັກຮຽນ
+              </h3>
+              <p className="text-xs text-slate-500 mb-4">
+                ກຳນົດນະໂຍບາຍຄວາມປອດໄພ, ການປ້ອງກັນການສອບເສັງ, ແລະ ສິດຂອງຜູ້ສອບເສັງ
+              </p>
+
+              <div className="space-y-3.5 text-xs">
+                {/* Exam Access Passcode */}
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-slate-800 block text-xs">ລະຫັດຜ່ານເຂົ້າສອບເສັງ (Exam Access Code)</span>
+                      <span className="text-[11px] text-slate-500 block">ບັງຄັບໃຫ້ນັກຮຽນຕ້ອງໃສ່ລະຫັດກ່ອນເລີ່ມສອບເສັງ</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={enableExamCodeInput}
+                        onChange={(e) => setEnableExamCodeInput(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+
+                  {enableExamCodeInput && (
+                    <div className="pt-1">
+                      <input
+                        type="text"
+                        value={examAccessCodeInput}
+                        onChange={(e) => setExamAccessCodeInput(e.target.value)}
+                        placeholder="ກຳນົດລະຫັດເຂົ້າສອບ ເຊັ່ນ: CPS2026"
+                        className="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-xl font-mono text-xs font-bold"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Anti-Cheating Copy Protection */}
+                <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200/70">
+                  <div>
+                    <span className="font-semibold text-slate-800 block text-xs">ປ້ອງກັນການກັອບປີ້ / ຫ້າມຄລິກຂວາ</span>
+                    <span className="text-[11px] text-slate-500">ຫ້າມ Copy ຂໍ້ຄວາມ ຫຼື ຄລິກຂວາໃນລະຫວ່າງສອບເສັງ</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={antiCheatingCopyInput}
+                    onChange={(e) => setAntiCheatingCopyInput(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                </div>
+
+                {/* Detect Tab Switching */}
+                <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200/70">
+                  <div>
+                    <span className="font-semibold text-slate-800 block text-xs">ກວດຈັບການສະຫຼັບໜ້າຈໍ / ແຖບ</span>
+                    <span className="text-[11px] text-slate-500">ແຈ້ງເຕືອນເມື່ອນັກຮຽນສະຫຼັບໜ້າຈໍ ຫຼື ເປີດແຖບອື່ນ</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={detectTabSwitchInput}
+                    onChange={(e) => setDetectTabSwitchInput(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                </div>
+
+                {/* Limit One Attempt */}
+                <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200/70">
+                  <div>
+                    <span className="font-semibold text-slate-800 block text-xs">ຈຳກັດການສອບເສັງ 1 ຄັ້ງຕໍ່ຄົນ</span>
+                    <span className="text-[11px] text-slate-500">ປ້ອງກັນບໍ່ໃຫ້ນັກຮຽນສອບເສັງຊ້ຳໃນບົດສອບດຽວກັນ</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={limitOneAttemptInput}
+                    onChange={(e) => setLimitOneAttemptInput(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                </div>
+
+                {/* Show Answer Keys */}
+                <div className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-200/70">
+                  <div>
+                    <span className="font-semibold text-slate-800 block text-xs">ສະແດງສະເລີຍຄຳຕອບຫຼັງສອບເສັງ</span>
+                    <span className="text-[11px] text-slate-500">ໃຫ້ນັກຮຽນເຫັນຂໍ້ຖືກ/ຜິດ ຫຼັງຈາກກົດສົ່ງຄຳຕອບທັນທີ</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={showAnswerKeysInput}
+                    onChange={(e) => setShowAnswerKeysInput(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                </div>
               </div>
+            </div>
+          </div>
 
+          {/* Settings Save Banner & Action Button */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h4 className="text-sm font-bold text-slate-900">ບັນທຶກການຕັ້ງຄ່າທັງໝົດ</h4>
+              <p className="text-xs text-slate-500">ບັນທຶກການປ່ຽນແປງທັງໝົດຂອງລະບົບຄວາມປອດໄພ Admin ແລະ ນັກຮຽນ</p>
+            </div>
+
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               {settingsMsg && (
                 <div
-                  className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                  className={`p-2.5 rounded-xl text-xs flex items-center gap-2 ${
                     settingsMsg.success
                       ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                       : 'bg-rose-50 text-rose-800 border border-rose-200'
                   }`}
                 >
                   {settingsMsg.success ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   ) : (
-                    <AlertCircle className="w-4 h-4 text-rose-600" />
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
                   )}
                   <span>{settingsMsg.text}</span>
                 </div>
               )}
 
               <button
-                type="submit"
+                type="button"
+                onClick={handleSaveAdminSettings}
                 disabled={savingSettings}
-                className="flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl shadow-xs"
+                className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer shrink-0"
               >
                 <Save className="w-4 h-4" />
-                {savingSettings ? 'ກຳລັງບັນທຶກ...' : 'ບັນທຶກການຕັ້ງຄ່າ'}
+                <span>{savingSettings ? 'ກຳລັງບັນທຶກ...' : 'ບັນທຶກການຕັ້ງຄ່າທັງໝົດ'}</span>
               </button>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
+
+            {/* Turso Database Connection Settings Card */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 flex flex-col justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
+                  <Database className="w-4 h-4 text-blue-600" />
+                  ຕັ້ງຄ່າຖານຂໍ້ມູນ Turso (LibSQL Database)
+                </h3>
+                <p className="text-xs text-slate-500 mb-4">
+                  ຈັດການ URL ແລະ Auth Token ສຳລັບເຊື່ອມຕໍ່ Turso LibSQL Cloud Database
+                </p>
+
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 mb-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500 font-medium">ສະຖານະການເຊື່ອມຕໍ່:</span>
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg ${
+                      isTursoConfigured
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      <span className={`w-2 h-2 rounded-full ${isTursoConfigured ? 'bg-emerald-600' : 'bg-amber-600'}`} />
+                      {isTursoConfigured ? 'ເຊື່ອມຕໍ່ Turso ແລ້ວ' : 'ຍັງບໍ່ທັນໄດ້ກຳນົດຄ່າ'}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-600 leading-relaxed">
+                    ລະບົບນີ້ໃຊ້ສະຖາປັດຕະຍະກຳ Direct Client (@libsql/client/web) ເຊື່ອມຕໍ່ຖານຂໍ້ມູນ Turso ຈາກ Browser ໂດຍກົງ ບໍ່ຜ່ານ Backend Server.
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  onClick={onOpenTursoConfig}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+                >
+                  <Database className="w-4 h-4 text-emerald-400" />
+                  <span>{isTursoConfigured ? 'ກວດສອບ / ແກ້ໄຂຄ່າ Turso' : 'ຕັ້ງຄ່າ Turso Database ດຽວນີ້'}</span>
+                </button>
+                <p className="text-[10px] text-slate-400 text-center mt-2">
+                  * ປຸ່ມນີ້ສາມາດເຂົ້າເຖິງໄດ້ສະເພາະ Admin ເທົ່ານັ້ນ
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
       {/* Modal: Add/Edit Teacher */}
       {showTeacherModal && (

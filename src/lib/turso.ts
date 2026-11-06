@@ -1,5 +1,14 @@
 import { createClient, type Client } from '@libsql/client/web';
-import type { Teacher, Exam, Submission, Question, StudentInfo, StudentAnswerItem } from '../types';
+import type {
+  Teacher,
+  Exam,
+  Submission,
+  Question,
+  StudentInfo,
+  StudentAnswerItem,
+  SystemSecuritySettings,
+  StudentProfile,
+} from '../types';
 
 let cachedClient: Client | null = null;
 let cachedConfigKey = '';
@@ -151,6 +160,34 @@ export async function initDatabase(): Promise<{ success: boolean; message: strin
     });
     await client.execute({
       sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('pass_percentage', '50');`,
+      args: [],
+    });
+    await client.execute({
+      sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('exam_access_code', '');`,
+      args: [],
+    });
+    await client.execute({
+      sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('enable_exam_code', '0');`,
+      args: [],
+    });
+    await client.execute({
+      sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('anti_cheating_copy', '1');`,
+      args: [],
+    });
+    await client.execute({
+      sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('detect_tab_switch', '1');`,
+      args: [],
+    });
+    await client.execute({
+      sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('limit_one_attempt', '0');`,
+      args: [],
+    });
+    await client.execute({
+      sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('show_answer_keys', '1');`,
+      args: [],
+    });
+    await client.execute({
+      sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('require_fullscreen', '0');`,
       args: [],
     });
 
@@ -770,4 +807,132 @@ export async function setPassPercentage(percentage: number): Promise<void> {
     const msg = err instanceof Error ? err.message : String(err);
     throw new Error(`ບໍ່ສາມາດແກ້ໄຂເກນຄະແນນຜ່ານໄດ້: ${msg}`);
   }
+}
+
+export const DEFAULT_SECURITY_SETTINGS: SystemSecuritySettings = {
+  adminPassword: 'admin2026',
+  passPercentage: 50,
+  examAccessCode: '',
+  enableExamCode: false,
+  antiCheatingCopy: true,
+  detectTabSwitch: true,
+  limitOneAttempt: false,
+  showAnswerKeys: true,
+  requireFullscreen: false,
+};
+
+export async function getSystemSettings(): Promise<SystemSecuritySettings> {
+  try {
+    const client = getTursoClient();
+    const res = await client.execute(`SELECT key, value FROM settings;`);
+    const settings: SystemSecuritySettings = { ...DEFAULT_SECURITY_SETTINGS };
+
+    for (const row of res.rows) {
+      const key = String(row.key);
+      const val = String(row.value || '');
+      if (key === 'admin_password' && val) settings.adminPassword = val;
+      else if (key === 'pass_percentage') settings.passPercentage = Number(val) || 50;
+      else if (key === 'exam_access_code') settings.examAccessCode = val;
+      else if (key === 'enable_exam_code') settings.enableExamCode = val === '1' || val === 'true';
+      else if (key === 'anti_cheating_copy') settings.antiCheatingCopy = val === '1' || val === 'true';
+      else if (key === 'detect_tab_switch') settings.detectTabSwitch = val === '1' || val === 'true';
+      else if (key === 'limit_one_attempt') settings.limitOneAttempt = val === '1' || val === 'true';
+      else if (key === 'show_answer_keys') settings.showAnswerKeys = val === '1' || val === 'true';
+      else if (key === 'require_fullscreen') settings.requireFullscreen = val === '1' || val === 'true';
+    }
+
+    return settings;
+  } catch {
+    return { ...DEFAULT_SECURITY_SETTINGS };
+  }
+}
+
+export async function saveSystemSecuritySettings(settings: Partial<SystemSecuritySettings>): Promise<void> {
+  try {
+    const client = getTursoClient();
+    const batch: { sql: string; args: (string | number)[] }[] = [];
+
+    if (settings.adminPassword !== undefined) {
+      batch.push({
+        sql: `INSERT INTO settings (key, value) VALUES ('admin_password', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+        args: [settings.adminPassword.trim()],
+      });
+    }
+    if (settings.passPercentage !== undefined) {
+      batch.push({
+        sql: `INSERT INTO settings (key, value) VALUES ('pass_percentage', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+        args: [String(settings.passPercentage)],
+      });
+    }
+    if (settings.examAccessCode !== undefined) {
+      batch.push({
+        sql: `INSERT INTO settings (key, value) VALUES ('exam_access_code', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+        args: [settings.examAccessCode.trim()],
+      });
+    }
+    if (settings.enableExamCode !== undefined) {
+      batch.push({
+        sql: `INSERT INTO settings (key, value) VALUES ('enable_exam_code', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+        args: [settings.enableExamCode ? '1' : '0'],
+      });
+    }
+    if (settings.antiCheatingCopy !== undefined) {
+      batch.push({
+        sql: `INSERT INTO settings (key, value) VALUES ('anti_cheating_copy', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+        args: [settings.antiCheatingCopy ? '1' : '0'],
+      });
+    }
+    if (settings.detectTabSwitch !== undefined) {
+      batch.push({
+        sql: `INSERT INTO settings (key, value) VALUES ('detect_tab_switch', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+        args: [settings.detectTabSwitch ? '1' : '0'],
+      });
+    }
+    if (settings.limitOneAttempt !== undefined) {
+      batch.push({
+        sql: `INSERT INTO settings (key, value) VALUES ('limit_one_attempt', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+        args: [settings.limitOneAttempt ? '1' : '0'],
+      });
+    }
+    if (settings.showAnswerKeys !== undefined) {
+      batch.push({
+        sql: `INSERT INTO settings (key, value) VALUES ('show_answer_keys', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+        args: [settings.showAnswerKeys ? '1' : '0'],
+      });
+    }
+    if (settings.requireFullscreen !== undefined) {
+      batch.push({
+        sql: `INSERT INTO settings (key, value) VALUES ('require_fullscreen', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+        args: [settings.requireFullscreen ? '1' : '0'],
+      });
+    }
+
+    if (batch.length > 0) {
+      await client.batch(batch, 'write');
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`ບໍ່ສາມາດບັນທຶກການຕັ້ງຄ່າຄວາມປອດໄພໄດ້: ${msg}`);
+  }
+}
+
+// Student Profile Management (Cached in localStorage)
+const STUDENT_PROFILE_KEY = 'emscps_student_profile';
+
+export function getStudentProfile(): StudentProfile | null {
+  try {
+    const stored = localStorage.getItem(STUDENT_PROFILE_KEY);
+    if (!stored) return null;
+    return JSON.parse(stored) as StudentProfile;
+  } catch {
+    return null;
+  }
+}
+
+export function saveStudentProfile(profile: StudentProfile): void {
+  localStorage.setItem(STUDENT_PROFILE_KEY, JSON.stringify(profile));
+}
+
+export function clearStudentProfile(): void {
+  localStorage.removeItem(STUDENT_PROFILE_KEY);
 }

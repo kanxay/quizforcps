@@ -10,6 +10,7 @@ import { StudentExamRoom } from './components/StudentExamRoom';
 import { TeacherDashboard } from './components/TeacherDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { CertificatePrintView } from './components/CertificatePrintView';
+import { StudentSettingsModal } from './components/StudentSettingsModal';
 
 export default function App() {
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -23,6 +24,7 @@ export default function App() {
   // Modals & Connection Status
   const [isTursoConfigOpen, setIsTursoConfigOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isStudentSettingsOpen, setIsStudentSettingsOpen] = useState(false);
   const [isTursoConfigured, setIsTursoConfigured] = useState(false);
   const [dbStatusError, setDbStatusError] = useState<string | null>(null);
 
@@ -99,8 +101,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
-      {/* Turso Not Configured Warning Banner */}
-      {!isTursoConfigured && (
+      {/* Turso Not Configured Warning Banner - only for Admin */}
+      {!isTursoConfigured && session?.role === 'admin' && (
         <div className="no-print bg-amber-500 text-slate-950 px-4 py-2.5 text-xs font-semibold flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-slate-950 shrink-0" />
@@ -121,6 +123,7 @@ export default function App() {
           session={session}
           onLogout={handleLogout}
           onOpenTursoConfig={() => setIsTursoConfigOpen(true)}
+          onOpenStudentSettings={() => setIsStudentSettingsOpen(true)}
           isTursoConfigured={isTursoConfigured}
         />
       )}
@@ -152,7 +155,7 @@ export default function App() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               ລະບົບສອບເສັງອາສາສະໝັກອອນລາຍ
             </h1>
-            <p className="text-sm font-semibold text-blue-700 mt-1">Lao Volunteer Online Examination</p>
+            <p className="text-sm font-semibold text-blue-700 mt-1">ໂຮງໝໍແຂວງຈຳປາສັກ (Champasak Provincial Hospital)</p>
             <p className="text-xs text-slate-500 mt-2 max-w-md">
               ລະບົບສອບເສັງ ແລະ ຢັ້ງຢືນມາດຕະຖານຄວາມຮູ້ອາສາສະໝັກ ມີຄົບວົງຈອນ: ອອກຂໍ້ສອບ, ສອບເສັງ, ກວດຄະແນນ ແລະ ອອກໃບຢັ້ງຢືນ
             </p>
@@ -168,6 +171,7 @@ export default function App() {
           <StudentExamList
             exams={exams}
             onSelectExam={(exam) => setSelectedExam(exam)}
+            onOpenSettings={() => setIsStudentSettingsOpen(true)}
             loading={loadingExams}
           />
         ) : session.role === 'teacher' && session.teacher ? (
@@ -187,8 +191,16 @@ export default function App() {
       <LoginModal
         isOpen={isLoginModalOpen}
         onLoginSuccess={handleLoginSuccess}
-        onOpenTursoConfig={() => setIsTursoConfigOpen(true)}
-        isTursoConfigured={isTursoConfigured}
+      />
+
+      {/* Student Settings & Security Modal */}
+      <StudentSettingsModal
+        isOpen={isStudentSettingsOpen}
+        onClose={() => setIsStudentSettingsOpen(false)}
+        onViewCertificate={(sub) => {
+          setCertificateSubmission(sub);
+          setIsStudentSettingsOpen(false);
+        }}
       />
 
       {/* Turso Database Config Modal */}

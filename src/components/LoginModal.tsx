@@ -6,11 +6,9 @@ import { fetchTeachers, getSettings } from '../lib/turso';
 interface Props {
   isOpen: boolean;
   onLoginSuccess: (session: AuthSession) => void;
-  onOpenTursoConfig: () => void;
-  isTursoConfigured: boolean;
 }
 
-export function LoginModal({ isOpen, onLoginSuccess, onOpenTursoConfig, isTursoConfigured }: Props) {
+export function LoginModal({ isOpen, onLoginSuccess }: Props) {
   const [role, setRole] = useState<'student' | 'teacher' | 'admin'>('student');
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
@@ -37,10 +35,8 @@ export function LoginModal({ isOpen, onLoginSuccess, onOpenTursoConfig, isTursoC
     }
 
     // Refresh teachers from Turso in background
-    if (isTursoConfigured) {
-      loadTeachers();
-    }
-  }, [isOpen, isTursoConfigured]);
+    loadTeachers();
+  }, [isOpen]);
 
   const loadTeachers = async () => {
     setLoadingTeachers(true);
@@ -118,7 +114,7 @@ export function LoginModal({ isOpen, onLoginSuccess, onOpenTursoConfig, isTursoC
             <BookOpen className="w-7 h-7" />
           </div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">ລະບົບສອບເສັງອາສາສະໝັກອອນລາຍ</h2>
-          <p className="text-xs font-semibold text-blue-700 mt-0.5">Lao Volunteer Online Examination</p>
+          <p className="text-xs font-semibold text-blue-700 mt-0.5">ໂຮງໝໍແຂວງຈຳປາສັກ (Champasak Provincial Hospital)</p>
           <p className="text-[11px] text-slate-500 mt-1">ເລືອກບົດບາດຂອງທ່ານເພື່ອເຂົ້າສູ່ລະບົບ</p>
         </div>
 
@@ -239,19 +235,9 @@ export function LoginModal({ isOpen, onLoginSuccess, onOpenTursoConfig, isTursoC
           </button>
         </form>
 
-        {/* Footer info & Turso config quick trigger */}
-        <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <div className="flex items-center gap-1.5">
-            <span className={`w-2 h-2 rounded-full ${isTursoConfigured ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-            <span>{isTursoConfigured ? 'Turso ພ້ອມໃຊ້ງານ' : 'ຍັງບໍ່ໄດ້ເຊື່ອມຕໍ່ Turso'}</span>
-          </div>
-          <button
-            type="button"
-            onClick={onOpenTursoConfig}
-            className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
-          >
-            ຕັ້ງຄ່າຖານຂໍ້ມູນ
-          </button>
+        {/* Clean Footer without database button */}
+        <div className="mt-5 pt-4 border-t border-slate-100 text-center text-[11px] text-slate-400">
+          ໂຮງໝໍແຂວງຈຳປາສັກ · ລະບົບສອບເສັງອາສາສະໝັກອອນລາຍ
         </div>
       </div>
     </div>
