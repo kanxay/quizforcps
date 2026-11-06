@@ -1,0 +1,6 @@
+{
+  "name": "ລະບົບສອບເສັງອາສາສະໝັກອອນລາຍ (Lao Volunteer Exam)",
+  "description": "ລະບົບຈັດການສອບເສັງອາສາສະໝັກອອນລາຍ: ອອກຂໍ້ສອບ, ສອບເສັງ, ກວດຄະແນນ ແລະ ສະຫຼຸບຜົນ",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
