@@ -13,6 +13,7 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [password, setPassword] = useState('');
+  const [studentPassword, setStudentPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,9 +35,19 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
       }
     }
 
-    // Refresh teachers from Turso in background
+    // Refresh teachers and settings from Turso in background
     loadTeachers();
+    loadSettings();
   }, [isOpen]);
+
+  const loadSettings = async () => {
+    try {
+      const sett = await getSettings();
+      setStudentPassword((sett.studentPassword || '').trim());
+    } catch (err: unknown) {
+      console.warn('Settings sync warn in login:', err);
+    }
+  };
 
   const loadTeachers = async () => {
     setLoadingTeachers(true);
@@ -62,10 +73,22 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
 
     try {
       if (role === 'student') {
-        // Examinee requires no password
-        const session: AuthSession = { role: 'student' };
-        localStorage.setItem('emscps_auth_session', JSON.stringify(session));
-        onLoginSuccess(session);
+        const sett = await getSettings();
+        const requiredStudentPassword = (sett.studentPassword || '').trim();
+        if (requiredStudentPassword) {
+          if (password.trim() === requiredStudentPassword) {
+            const session: AuthSession = { role: 'student' };
+            localStorage.setItem('emscps_auth_session', JSON.stringify(session));
+            onLoginSuccess(session);
+          } else {
+            setError('ລະຫັດຜ່ານນັກຮຽນບໍ່ຖືກຕ້ອງ! ກະລຸນາກວດສອບຄືນ.');
+          }
+        } else {
+          // Examinee requires no password when none is set
+          const session: AuthSession = { role: 'student' };
+          localStorage.setItem('emscps_auth_session', JSON.stringify(session));
+          onLoginSuccess(session);
+        }
       } else if (role === 'admin') {
         const settings = await getSettings();
         if (password.trim() === settings.adminPassword.trim()) {
@@ -143,7 +166,11 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
           {/* Student description */}
           {role === 'student' && (
             <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-blue-900 leading-relaxed">
-              ອາສາສະໝັກສາມາດເຂົ້າໄປເລືອກບົດສອບເສັງ ແລະ ເລີ່ມຕົ້ນສອບໄດ້ທັນທີ ໂດຍບໍ່ຈຳເປັນຕ້ອງໃຊ້ລະຫັດຜ່ານ.
+              {studentPassword ? (
+                <span>ລະບົບບັງຄັບໃຫ້ໃສ່ລະຫັດຜ່ານນັກຮຽນກ່ອນເຂົ້າສູ່ລະບົບ (ຖ້າບໍ່ມີລະຫັດ ກະລຸນາຕິດຕໍ່ອາຈານ ຫຼື ຜູ້ດູແລລະບົບ).</span>
+              ) : (
+                <span>ອາສາສະໝັກສາມາດເຂົ້າໄປເລືອກບົດສອບເສັງ ແລະ ເລີ່ມຕົ້ນສອບໄດ້ທັນທີ ໂດຍບໍ່ຈຳເປັນຕ້ອງໃຊ້ລະຫັດຜ່ານ.</span>
+              )}
             </div>
           )}
 
@@ -188,18 +215,24 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
             </div>
           )}
 
-          {/* Password (for Teacher & Admin) */}
-          {(role === 'teacher' || role === 'admin') && (
+          {/* Password (for Teacher, Admin, or Student when student password is set) */}
+          {(role === 'teacher' || role === 'admin' || (role === 'student' && Boolean(studentPassword))) && (
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                ລະຫັດຜ່ານ <span className="text-rose-500">*</span>
+                {role === 'student' ? 'ລະຫັດຜ່ານນັກຮຽນ' : 'ລະຫັດຜ່ານ'} <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={role === 'admin' ? 'ໃສ່ລະຫັດ Admin (ເລີ່ມຕົ້ນ: admin2026)' : 'ໃສ່ລະຫັດຜ່ານຂອງອາຈານ'}
+                  placeholder={
+                    role === 'admin'
+                      ? 'ໃສ່ລະຫັດ Admin (ເລີ່ມຕົ້ນ: admin2026)'
+                      : role === 'student'
+                      ? 'ໃສ່ລະຫັດຜ່ານນັກຮຽນ'
+                      : 'ໃສ່ລະຫັດຜ່ານຂອງອາຈານ'
+                  }
                   autoComplete="new-password"
                   className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans"
                   required

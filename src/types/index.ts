@@ -80,6 +80,7 @@ export interface Setting {
 
 export interface SystemSecuritySettings {
   adminPassword: string;
+  studentPassword: string;
   passPercentage: number;
   examAccessCode: string;
   enableExamCode: boolean;

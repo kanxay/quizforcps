@@ -54,6 +54,8 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
 
   // Admin & Student Security Settings
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
+  const [studentPasswordInput, setStudentPasswordInput] = useState('');
+  const [currentStudentPassword, setCurrentStudentPassword] = useState('');
   const [passThresholdInput, setPassThresholdInput] = useState(50);
   const [examAccessCodeInput, setExamAccessCodeInput] = useState('');
   const [enableExamCodeInput, setEnableExamCodeInput] = useState(false);
@@ -100,6 +102,7 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
       setTeachers(tList);
       setExams(eList);
       setSubmissions(sList);
+      setCurrentStudentPassword(sett.studentPassword || '');
       setPassThresholdInput(sett.passPercentage);
       setExamAccessCodeInput(sett.examAccessCode || '');
       setEnableExamCodeInput(sett.enableExamCode);
@@ -292,14 +295,35 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
         payload.adminPassword = adminPasswordInput.trim();
       }
 
+      if (studentPasswordInput.trim()) {
+        payload.studentPassword = studentPasswordInput.trim();
+      }
+
       await saveSystemSecuritySettings(payload);
       setSettingsMsg({ success: true, text: 'ບັນທຶກການຕັ້ງຄ່າລະບົບ & ຄວາມປອດໄພ (ທັງ Admin ແລະ ນັກຮຽນ) ສຳເລັດແລ້ວ!' });
       setAdminPasswordInput('');
+      if (studentPasswordInput.trim()) {
+        setCurrentStudentPassword(studentPasswordInput.trim());
+        setStudentPasswordInput('');
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setSettingsMsg({ success: false, text: msg });
     } finally {
       setSavingSettings(false);
+    }
+  };
+
+  const handleClearStudentPassword = async () => {
+    if (!window.confirm('ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການປົດລັອກລະຫັດຜ່ານນັກຮຽນ? (ນັກຮຽນຈະສາມາດເຂົ້າສອບເສັງໄດ້ທັນທີໂດຍບໍ່ຕ້ອງໃຊ້ລະຫັດຜ່ານ)')) return;
+    try {
+      await saveSystemSecuritySettings({ studentPassword: '' });
+      setCurrentStudentPassword('');
+      setStudentPasswordInput('');
+      setSettingsMsg({ success: true, text: 'ປົດລັອກລະຫັດຜ່ານນັກຮຽນສຳເລັດແລ້ວ (ນັກຮຽນສາມາດເຂົ້າສອບເສັງໄດ້ໂດຍບໍ່ຕ້ອງໃຊ້ລະຫັດ)' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setSettingsMsg({ success: false, text: msg });
     }
   };
 
@@ -849,6 +873,53 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
               </p>
 
               <div className="space-y-3.5 text-xs">
+                {/* ລະຫັດຜ່ານ ນັກຮຽນ ໃໝ່ (Global Student Login Password) */}
+                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-slate-800 block text-xs">
+                        ລະຫັດຜ່ານ ນັກຮຽນ ໃໝ່ (ປະວ່າງໄວ້ຖ້າບໍ່ຕ້ອງການປ່ຽນ)
+                      </span>
+                      <span className="text-[11px] text-slate-500 block">
+                        ກຳນົດລະຫັດຜ່ານສຳລັບນັກຮຽນ/ອາສາສະໝັກທຸກຄົນກ່ອນເຂົ້າສູ່ລະບົບ (Student Login Password)
+                      </span>
+                    </div>
+                    {currentStudentPassword ? (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200 shrink-0">
+                        ກຳລັງເປີດໃຊ້ງານ
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-lg shrink-0">
+                        ບໍ່ໄດ້ຕັ້ງລະຫັດ (ເຂົ້າເສລີ)
+                      </span>
+                    )}
+                  </div>
+                  <div className="pt-1 flex items-center gap-2">
+                    <input
+                      type="password"
+                      value={studentPasswordInput}
+                      onChange={(e) => setStudentPasswordInput(e.target.value)}
+                      placeholder={currentStudentPassword ? 'ໃສ່ລະຫັດຜ່ານນັກຮຽນໃໝ່ ເພື່ອປ່ຽນ...' : 'ກຳນົດລະຫັດຜ່ານນັກຮຽນ (ເຊັ່ນ: 1234)...'}
+                      className="flex-1 px-3.5 py-2 bg-white border border-slate-300 rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {currentStudentPassword && (
+                      <button
+                        type="button"
+                        onClick={handleClearStudentPassword}
+                        className="px-2.5 py-2 text-[11px] text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 rounded-xl font-semibold transition-colors shrink-0 cursor-pointer"
+                        title="ຍົກເລີກລະຫັດຜ່ານນັກຮຽນ"
+                      >
+                        ປົດລັອກລະຫັດ
+                      </button>
+                    )}
+                  </div>
+                  {currentStudentPassword && (
+                    <p className="text-[11px] text-emerald-700 font-medium">
+                      ✓ ປັດຈຸບັນລະບົບບັງຄັບໃຫ້ນັກຮຽນຕ້ອງໃສ່ລະຫັດຜ່ານນີ້ໃນໜ້າ Login ກ່ອນເຂົ້າສູ່ລະບົບ.
+                    </p>
+                  )}
+                </div>
+
                 {/* Exam Access Passcode */}
                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
                   <div className="flex items-center justify-between">

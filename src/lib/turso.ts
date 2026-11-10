@@ -159,6 +159,10 @@ export async function initDatabase(): Promise<{ success: boolean; message: strin
       args: [],
     });
     await client.execute({
+      sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('student_password', '');`,
+      args: [],
+    });
+    await client.execute({
       sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('pass_percentage', '50');`,
       args: [],
     });
@@ -760,24 +764,27 @@ export async function deleteSubmission(id: string): Promise<void> {
 
 /* ==================== SETTINGS ==================== */
 
-export async function getSettings(): Promise<{ adminPassword: string; passPercentage: number }> {
+export async function getSettings(): Promise<{ adminPassword: string; studentPassword: string; passPercentage: number }> {
   try {
     const client = getTursoClient();
     const res = await client.execute(`SELECT key, value FROM settings;`);
     let adminPassword = 'admin2026';
+    let studentPassword = '';
     let passPercentage = 50;
 
     for (const row of res.rows) {
       if (row.key === 'admin_password' && row.value) {
         adminPassword = String(row.value);
+      } else if (row.key === 'student_password' && row.value) {
+        studentPassword = String(row.value);
       } else if (row.key === 'pass_percentage' && row.value) {
         passPercentage = Number(row.value) || 50;
       }
     }
 
-    return { adminPassword, passPercentage };
+    return { adminPassword, studentPassword, passPercentage };
   } catch {
-    return { adminPassword: 'admin2026', passPercentage: 50 };
+    return { adminPassword: 'admin2026', studentPassword: '', passPercentage: 50 };
   }
 }
 
@@ -811,6 +818,7 @@ export async function setPassPercentage(percentage: number): Promise<void> {
 
 export const DEFAULT_SECURITY_SETTINGS: SystemSecuritySettings = {
   adminPassword: 'admin2026',
+  studentPassword: '',
   passPercentage: 50,
   examAccessCode: '',
   enableExamCode: false,
@@ -831,6 +839,7 @@ export async function getSystemSettings(): Promise<SystemSecuritySettings> {
       const key = String(row.key);
       const val = String(row.value || '');
       if (key === 'admin_password' && val) settings.adminPassword = val;
+      else if (key === 'student_password') settings.studentPassword = val;
       else if (key === 'pass_percentage') settings.passPercentage = Number(val) || 50;
       else if (key === 'exam_access_code') settings.examAccessCode = val;
       else if (key === 'enable_exam_code') settings.enableExamCode = val === '1' || val === 'true';
@@ -856,6 +865,12 @@ export async function saveSystemSecuritySettings(settings: Partial<SystemSecurit
       batch.push({
         sql: `INSERT INTO settings (key, value) VALUES ('admin_password', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
         args: [settings.adminPassword.trim()],
+      });
+    }
+    if (settings.studentPassword !== undefined) {
+      batch.push({
+        sql: `INSERT INTO settings (key, value) VALUES ('student_password', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+        args: [settings.studentPassword.trim()],
       });
     }
     if (settings.passPercentage !== undefined) {
@@ -913,6 +928,16 @@ export async function saveSystemSecuritySettings(settings: Partial<SystemSecurit
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new Error(`ບໍ່ສາມາດບັນທຶກການຕັ້ງຄ່າຄວາມປອດໄພໄດ້: ${msg}`);
+  }
+}
+
+export async function getStudentPassword(): Promise<string> {
+  try {
+    const client = getTursoClient();
+    const res = await client.execute(`SELECT value FROM settings WHERE key = 'student_password';`);
+    return String(res.rows[0]?.value || '').trim();
+  } catch {
+    return '';
   }
 }
 
