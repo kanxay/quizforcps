@@ -14,7 +14,6 @@ import {
   MapPin,
   Building2,
   Clock,
-  Printer,
   Eye,
   EyeOff,
 } from 'lucide-react';
@@ -480,8 +479,8 @@ export function StudentSettingsModal({ isOpen, onClose, onViewCertificate, onPro
             <div className="space-y-4 text-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-bold text-slate-900">ປະຫວັດການສອບເສັງ ແລະ ໃບຢັ້ງຢືນ</h4>
-                  <p className="text-xs text-slate-500">ລາຍການບົດສອບເສັງທີ່ທ່ານໄດ້ສົ່ງຄຳຕອບໃນລະບົບ</p>
+                  <h4 className="font-bold text-slate-900">ປະຫວັດການສົ່ງບົດສອບເສັງ</h4>
+                  <p className="text-xs text-slate-500">ລາຍການບົດສອບເສັງທີ່ທ່ານໄດ້ສົ່ງຄຳຕອບເຂົ້າສູ່ລະບົບ</p>
                 </div>
                 <button
                   type="button"
@@ -500,8 +499,8 @@ export function StudentSettingsModal({ isOpen, onClose, onViewCertificate, onPro
               ) : mySubmissions.length === 0 ? (
                 <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200">
                   <Award className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="font-semibold text-slate-700">ຍັງບໍ່ມີປະຫວັດການສອບເສັງ</p>
-                  <p className="text-[11px] text-slate-400 mt-1">ເມື່ອທ່ານສອບເສັງສຳເລັດ ຜົນຄະແນນ ແລະ ໃບຢັ້ງຢືນຈະສະແດງຢູ່ນີ້</p>
+                  <p className="font-semibold text-slate-700">ຍັງບໍ່ມີປະຫວັດການສົ່ງບົດສອບເສັງ</p>
+                  <p className="text-[11px] text-slate-400 mt-1">ເມື່ອທ່ານສອບເສັງສຳເລັດ ປະຫວັດການສົ່ງບົດສອບຈະສະແດງຢູ່ນີ້</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -512,36 +511,24 @@ export function StudentSettingsModal({ isOpen, onClose, onViewCertificate, onPro
                     >
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            sub.passed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                          }`}>
-                            {sub.passed ? 'ຜ່ານ' : 'ບໍ່ຜ່ານ'} ({sub.percentage}%)
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            ສົ່ງບົດສອບແລ້ວ
                           </span>
                           <span className="text-slate-400 text-[10px] flex items-center gap-1 font-mono">
                             <Clock className="w-3 h-3" />
-                            {sub.submittedAt ? sub.submittedAt.slice(0, 10) : ''}
+                            {sub.submittedAt ? sub.submittedAt.slice(0, 16).replace('T', ' ') : ''}
                           </span>
                         </div>
                         <h5 className="font-bold text-slate-900 text-xs">{sub.examTitle}</h5>
                         <p className="text-[11px] text-slate-500">
-                          ອາຈານ: {sub.teacherName} · ຄະແນນ: {sub.totalScore}/{sub.maxTotalScore}
+                          ອາຈານ: {sub.teacherName || 'ຄະນະກຳມະການ'} · ລະຫັດສອບເສັງ #{sub.id.slice(0, 8)}
                         </p>
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        {sub.passed && onViewCertificate && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onViewCertificate(sub);
-                              onClose();
-                            }}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-xs cursor-pointer"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                            <span>ພິມໃບຢັ້ງຢືນ</span>
-                          </button>
-                        )}
+                        <span className="text-[11px] text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
+                          ລໍຖ້າປະກາດຜົນຈາກອາຈານ/Admin
+                        </span>
                       </div>
                     </div>
                   ))}

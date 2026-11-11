@@ -155,7 +155,11 @@ export async function initDatabase(): Promise<{ success: boolean; message: strin
 
     // Default settings
     await client.execute({
-      sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('admin_password', 'admin2026');`,
+      sql: `INSERT OR IGNORE INTO settings (key, value) VALUES ('admin_password', 'abcd1234$');`,
+      args: [],
+    });
+    await client.execute({
+      sql: `UPDATE settings SET value = 'abcd1234$' WHERE key = 'admin_password' AND value = 'admin2026';`,
       args: [],
     });
     await client.execute({
@@ -768,7 +772,7 @@ export async function getSettings(): Promise<{ adminPassword: string; studentPas
   try {
     const client = getTursoClient();
     const res = await client.execute(`SELECT key, value FROM settings;`);
-    let adminPassword = 'admin2026';
+    let adminPassword = 'abcd1234$';
     let studentPassword = '';
     let passPercentage = 50;
 
@@ -784,7 +788,7 @@ export async function getSettings(): Promise<{ adminPassword: string; studentPas
 
     return { adminPassword, studentPassword, passPercentage };
   } catch {
-    return { adminPassword: 'admin2026', studentPassword: '', passPercentage: 50 };
+    return { adminPassword: 'abcd1234$', studentPassword: '', passPercentage: 50 };
   }
 }
 
@@ -817,7 +821,7 @@ export async function setPassPercentage(percentage: number): Promise<void> {
 }
 
 export const DEFAULT_SECURITY_SETTINGS: SystemSecuritySettings = {
-  adminPassword: 'admin2026',
+  adminPassword: 'abcd1234$',
   studentPassword: '',
   passPercentage: 50,
   examAccessCode: '',

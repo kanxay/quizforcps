@@ -1,6 +1,6 @@
 {
-  "summary":  "Implementation plan for adding the Global Student Password configuration in Admin Settings Section 2 and enforcing student password authentication on login.",
-  "updatedAt":  "2026-11-10T23:50:49.691546305Z",
+  "summary":  "ແຜນການປັບປຸງໜ້າສິ້ນສຸດການສອບເສັງຂອງນັກຮຽນ: ຕັດການສະແດງຜົນຄະແນນ, ເປີເຊັນ, ໃບຢັ້ງຢືນ ແລະ ສະເລີຍຄຳຕອບອອກທັງໝົດ ໂດຍປ່ຽນເປັນໜ້າຢືນຢັນການສົ່ງບົດສອບເສັງທີ່ສະອາດ ແລະ ເປັນມືອາຊີບ, ພ້ອມທັງຮັກສາສິດການກວດຄະແນນ ແລະ ພິມໃບຢັ້ງຢືນໄວ້ໃຫ້ອາຈານ ແລະ Admin ຕາມປົກກະຕິ.",
+  "updatedAt":  "2026-11-11T01:14:06.650511764Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

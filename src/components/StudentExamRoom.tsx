@@ -3,8 +3,6 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Award,
-  Printer,
   ArrowLeft,
   Send,
   HelpCircle,
@@ -839,169 +837,100 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
   }
 
   /* ========================================================
-     VIEW 3: SUBMISSION RESULT & PASS/FAIL SCREEN
+     VIEW 3: CLEAN SUBMISSION CONFIRMATION (NO SCORES SHOWN)
   ======================================================== */
   if (step === 'result' && submissionResult) {
-    const isPassed = submissionResult.passed;
+    const formattedDate = submissionResult.submittedAt
+      ? new Date(submissionResult.submittedAt).toLocaleString('lo-LA', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : new Date().toLocaleString('lo-LA');
 
     return (
-      <div className="w-full max-w-3xl mx-auto py-8 px-4">
+      <div className="w-full max-w-2xl mx-auto py-8 px-4 animate-in fade-in duration-300">
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-10 text-center">
-          {/* Status Badge */}
-          <div
-            className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 ${
-              isPassed ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
-            }`}
-          >
-            {isPassed ? <Award className="w-10 h-10" /> : <AlertCircle className="w-10 h-10" />}
+          {/* Submission Success Icon Badge */}
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 mb-5 shadow-sm">
+            <CheckCircle className="w-10 h-10" />
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-            {isPassed ? 'ຍິນດີດ້ວຍ! ທ່ານສອບເສັງຜ່ານແລ້ວ' : 'ທ່ານຍັງບໍ່ຜ່ານເກນການສອບເສັງ'}
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            ສົ່ງບົດສອບເສັງສຳເລັດແລ້ວ
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            ບົດສອບ: <strong>{exam.title}</strong>
+          <p className="text-xs sm:text-sm font-medium text-emerald-700 mt-1">
+            Exam Submitted Successfully
           </p>
 
-          {/* Scores Overview Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6 max-w-xl mx-auto text-center font-mono">
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-              <span className="text-[11px] text-slate-500 block font-sans">ຄະແນນປາລະໄນ</span>
-              <strong className="text-lg text-slate-900">{submissionResult.objectiveScore} / {submissionResult.maxObjectiveScore}</strong>
+          <p className="text-xs sm:text-sm text-slate-600 mt-3 max-w-md mx-auto leading-relaxed">
+            ຂໍ້ມູນ ແລະ ຄຳຕອບຂອງທ່ານໄດ້ຖືກບັນທຶກເຂົ້າສູ່ລະບົບຮຽບຮ້ອຍແລ້ວ. ຄະນະກຳມະການ ແລະ ຄູອາຈານຈະດຳເນີນການກວດກາ ແລະ ປະກາດຜົນຕາມພາຍຫຼັງ.
+          </p>
+
+          {/* Submission Verification Receipt Card */}
+          <div className="my-6 p-4 sm:p-5 bg-slate-50/90 rounded-2xl border border-slate-200/90 text-left space-y-3 font-sans">
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                ໃບຢືນຢັນການສົ່ງບົດສອບ (Submission Receipt)
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                <CheckCircle className="w-3 h-3" />
+                ບັນທຶກແລ້ວ
+              </span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-              <span className="text-[11px] text-slate-500 block font-sans">ຄະແນນອັດຕະໄນ</span>
-              <strong className="text-lg text-slate-900">
-                {submissionResult.isFullyGraded
-                  ? `${submissionResult.essayScore} / ${submissionResult.maxEssayScore}`
-                  : 'ລໍຖ້າກວດ'}
-              </strong>
-            </div>
-            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-              <span className="text-[11px] text-slate-500 block font-sans">ຄະແນນລວມ</span>
-              <strong className="text-lg text-slate-900">{submissionResult.totalScore} / {submissionResult.maxTotalScore}</strong>
-            </div>
-            <div
-              className={`p-3 rounded-2xl border ${
-                isPassed ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
-              }`}
-            >
-              <span className="text-[11px] block font-sans">ເປີເຊັນ (%)</span>
-              <strong className="text-xl font-bold">{submissionResult.percentage}%</strong>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <span className="text-[11px] text-slate-400 block">ຫົວຂໍ້ບົດສອບ</span>
+                <strong className="text-slate-800 font-semibold">{exam.title}</strong>
+              </div>
+
+              <div>
+                <span className="text-[11px] text-slate-400 block">ລະຫັດບົດສອບເສັງ</span>
+                <strong className="text-slate-800 font-mono font-bold">
+                  #{submissionResult.id.slice(0, 10)}
+                </strong>
+              </div>
+
+              <div>
+                <span className="text-[11px] text-slate-400 block">ຊື່ ແລະ ນາມສະກຸນ</span>
+                <strong className="text-slate-800 font-semibold">
+                  {submissionResult.studentInfo?.fullName || studentInfo.fullName || '-'}
+                </strong>
+              </div>
+
+              <div>
+                <span className="text-[11px] text-slate-400 block">ສັງກັດ / ແຂວງ</span>
+                <strong className="text-slate-800 font-semibold">
+                  {submissionResult.studentInfo?.province || studentInfo.province || 'ໂຮງໝໍແຂວງຈຳປາສັກ'}
+                </strong>
+              </div>
+
+              <div className="sm:col-span-2 pt-1 border-t border-slate-200/60">
+                <span className="text-[11px] text-slate-400 block">ວັນທີ & ເວລາທີ່ສົ່ງ</span>
+                <span className="text-slate-700 font-medium font-mono text-[11px]">
+                  {formattedDate}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <div className="p-3 bg-blue-50/60 border border-blue-200/60 rounded-xl text-[11px] text-blue-800 mb-6">
+            💡 ທ່ານສາມາດກົດປຸ່ມດ້ານລຸ່ມເພື່ອອອກຈາກຫ້ອງສອບ ຫຼື ກັບຄືນສູ່ໜ້າລາຍການບົດສອບໄດ້ຢ່າງປອດໄພ.
+          </div>
+
+          {/* Action Button */}
+          <div className="flex items-center justify-center pt-1">
             <button
               onClick={onExit}
-              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+              className="flex items-center justify-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer"
             >
-              ກັບຄືນລາຍການບົດສອບ
+              <ArrowLeft className="w-4 h-4" />
+              ກັບຄືນໜ້າຫຼັກ / ລາຍການບົດສອບ
             </button>
-
-            {isPassed && (
-              <button
-                onClick={() => onViewCertificate(submissionResult)}
-                className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
-              >
-                <Printer className="w-4 h-4" />
-                ເບິ່ງ ແລະ ພິມໃບຢັ້ງຢືນ (Certificate)
-              </button>
-            )}
           </div>
-
-          {/* Answer Breakdown Details */}
-          <div className="mt-10 pt-6 border-t border-slate-100 text-left">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4">
-              ກວດກາຄຳຕອບລະອຽດ (Answer Review)
-            </h3>
-
-            {systemSecurity?.showAnswerKeys === false ? (
-              <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl text-center">
-                <ShieldCheck className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <h4 className="font-bold text-slate-800 text-xs">ຄຳຕອບຂອງທ່ານຖືກບັນທຶກເຂົ້າສູ່ລະບົບຮຽບຮ້ອຍແລ້ວ</h4>
-                <p className="text-[11px] text-slate-500 mt-1 max-w-md mx-auto">
-                  ອາຈານ ແລະ ຜູ້ດູແລລະບົບໄດ້ກຳນົດປິດການສະແດງສະເລີຍຂໍ້ສອບຊົ່ວຄາວ ເພື່ອມາດຕະຖານຄວາມປອດໄພຂອງການສອບເສັງ.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4 text-xs">
-                {exam.questions.map((q, idx) => {
-                  const ansItem = submissionResult.answers[q.id];
-                  const isCorrect = ansItem?.isCorrect;
-
-                return (
-                  <div
-                    key={q.id}
-                    className={`p-4 rounded-2xl border ${
-                      q.type === 'text'
-                        ? 'bg-slate-50 border-slate-200'
-                        : isCorrect
-                        ? 'bg-emerald-50/50 border-emerald-200'
-                        : 'bg-rose-50/50 border-rose-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-slate-800">
-                        ຂໍ້ທີ {idx + 1}: {q.text}
-                      </span>
-                      <span className="font-mono text-[11px] font-bold">
-                        {ansItem?.awardedScore} / {q.points} ຄະແນນ
-                      </span>
-                    </div>
-
-                    {q.type === 'single_choice' && q.options && (
-                      <div className="space-y-1 text-[11px]">
-                        <p className="text-slate-600">
-                          ຄຳຕອບຂອງທ່ານ: <strong>{ansItem?.chosenAnswer !== -1 && typeof ansItem?.chosenAnswer === 'number' ? q.options[ansItem.chosenAnswer] : 'ບໍ່ໄດ້ຕອບ'}</strong>
-                        </p>
-                        {!isCorrect && (
-                          <p className="text-emerald-700 font-semibold">
-                            ຄຳຕອບທີ່ຖືກຕ້ອງ: {typeof q.correctAnswer === 'number' && q.options[q.correctAnswer]}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {q.type === 'multiple_choice' && q.options && (
-                      <div className="space-y-1 text-[11px]">
-                        <p className="text-slate-600">
-                          ຄຳຕອບຂອງທ່ານ: <strong>
-                            {Array.isArray(ansItem?.chosenAnswer) && ansItem.chosenAnswer.length > 0
-                              ? ansItem.chosenAnswer.map((i) => q.options?.[i]).join(', ')
-                              : 'ບໍ່ໄດ້ຕອບ'}
-                          </strong>
-                        </p>
-                        {!isCorrect && (
-                          <p className="text-emerald-700 font-semibold">
-                            ຄຳຕອບທີ່ຖືກຕ້ອງ: {(q.correctAnswer as number[])?.map((i) => q.options?.[i]).join(', ')}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {q.type === 'text' && (
-                      <div className="space-y-1.5 text-[11px]">
-                        <p className="text-slate-700">
-                          ຄຳຕອບຂອງທ່ານ: <span className="font-medium">{String(ansItem?.chosenAnswer || 'ບໍ່ໄດ້ຕອບ')}</span>
-                        </p>
-                        {q.sampleAnswer && (
-                          <p className="text-blue-700">
-                            ຄຳຕອບຕົວຢ່າງ: {q.sampleAnswer}
-                          </p>
-                        )}
-                        <p className="text-slate-400">
-                          {ansItem?.teacherFeedback ? `ຄຳຕິຊົມຈາກອາຈານ: ${ansItem.teacherFeedback}` : 'ສະຖານະ: ລໍຖ້າອາຈານໃຫ້ຄະແນນ'}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
         </div>
       </div>
     );

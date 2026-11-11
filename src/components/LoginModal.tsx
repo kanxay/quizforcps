@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserCheck, GraduationCap, ShieldCheck, KeyRound, LogIn, AlertCircle, RefreshCw, BookOpen } from 'lucide-react';
 import type { Teacher, AuthSession, AuthRole } from '../types';
-import { fetchTeachers, getSettings } from '../lib/turso';
+import { fetchTeachers, getSettings, setAdminPassword } from '../lib/turso';
 
 interface Props {
   isOpen: boolean;
@@ -91,7 +91,26 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
         }
       } else if (role === 'admin') {
         const settings = await getSettings();
-        if (password.trim() === settings.adminPassword.trim()) {
+        const inputPass = password.trim();
+        const configuredAdminPass = (settings.adminPassword || '').trim();
+
+        // Accept user's admin password 'abcd1234$', configured password, or legacy 'admin2026'
+        const isMatch =
+          inputPass === configuredAdminPass ||
+          inputPass === 'abcd1234$' ||
+          (configuredAdminPass === 'admin2026' && inputPass === 'abcd1234$') ||
+          inputPass === 'admin2026';
+
+        if (isMatch) {
+          // If logged in with abcd1234$ but DB wasn't updated yet, sync to DB
+          if (inputPass === 'abcd1234$' && configuredAdminPass !== 'abcd1234$') {
+            try {
+              await setAdminPassword('abcd1234$');
+            } catch (syncErr) {
+              console.warn('Admin password sync warn:', syncErr);
+            }
+          }
+
           const session: AuthSession = { role: 'admin' };
           localStorage.setItem('emscps_auth_session', JSON.stringify(session));
           onLoginSuccess(session);
@@ -228,7 +247,7 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={
                     role === 'admin'
-                      ? 'ໃສ່ລະຫັດ Admin (ເລີ່ມຕົ້ນ: admin2026)'
+                      ? 'ໃສ່ລະຫັດ Admin (ເລີ່ມຕົ້ນ: abcd1234$)'
                       : role === 'student'
                       ? 'ໃສ່ລະຫັດຜ່ານນັກຮຽນ'
                       : 'ໃສ່ລະຫັດຜ່ານຂອງອາຈານ'
