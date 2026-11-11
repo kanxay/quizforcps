@@ -24,7 +24,7 @@ export function Navbar({ session, onLogout, onOpenTursoConfig, onOpenStudentSett
           </div>
           <div>
             <span className="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap block leading-tight">
-              Lao Volunteer Exam
+              CPS hospital Volunteer Exam
             </span>
             <span className="text-[11px] font-medium text-blue-700 whitespace-nowrap block leading-tight">
               ໂຮງໝໍແຂວງຈຳປາສັກ · ສອບເສັງອາສາສະໝັກ
