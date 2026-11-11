@@ -1,4 +1,4 @@
-import { BookOpen, LogOut, Database, User, Shield, GraduationCap, Settings } from 'lucide-react';
+import { BookOpen, LogOut, Database, User, Shield, GraduationCap } from 'lucide-react';
 import type { AuthSession } from '../types';
 
 interface Props {
@@ -62,18 +62,7 @@ export function Navbar({ session, onLogout, onOpenTursoConfig, onOpenStudentSett
             </button>
           )}
 
-          {/* Student Settings & Security Button */}
-          {isStudent && onOpenStudentSettings && (
-            <button
-              type="button"
-              onClick={onOpenStudentSettings}
-              className="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors flex items-center gap-1.5 cursor-pointer text-xs font-semibold"
-              title="ຕັ້ງຄ່າ & ຄວາມປອດໄພນັກຮຽນ"
-            >
-              <Settings className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">ຕັ້ງຄ່າ & ຄວາມປອດໄພ</span>
-            </button>
-          )}
+
 
           {/* Role Badge */}
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-xl text-xs text-slate-700">

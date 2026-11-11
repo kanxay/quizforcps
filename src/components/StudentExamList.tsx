@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpen, Clock, HelpCircle, User, Search, Award, Shield } from 'lucide-react';
+import { BookOpen, Clock, HelpCircle, User, Search, Award } from 'lucide-react';
 import type { Exam } from '../types';
 
 interface Props {
@@ -37,19 +37,6 @@ export function StudentExamList({ exams, onSelectExam, onOpenSettings, loading }
           <p className="text-xs sm:text-sm text-blue-100 mt-2 leading-relaxed">
             ຍິນດີຕ້ອນຮັບອາສາສະໝັກທຸກທ່ານ ເຂົ້າສູ່ລະບົບທົດສອບຄວາມຮູ້ມາດຕະຖານ. ກະລຸນາເລືອກບົດສອບເສັງທີ່ທ່ານຕ້ອງການທົດສອບດ້ານລຸ່ມນີ້.
           </p>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2.5">
-            {onOpenSettings && (
-              <button
-                type="button"
-                onClick={onOpenSettings}
-                className="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs border border-white/20"
-              >
-                <Shield className="w-4 h-4 text-amber-300" />
-                <span>ການຕັ້ງຄ່າ & ຄວາມປອດໄພນັກຮຽນ</span>
-              </button>
-            )}
-          </div>
         </div>
       </div>
 
