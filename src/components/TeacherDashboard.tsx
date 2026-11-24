@@ -17,6 +17,7 @@ import {
   Search,
   CheckSquare,
   Award,
+  Eye,
 } from 'lucide-react';
 import type { Teacher, Exam, Question, QuestionType, Submission, StudentAnswerItem } from '../types';
 import {
@@ -28,6 +29,7 @@ import {
   updateSubmissionGrading,
   getSettings,
 } from '../lib/turso';
+import { SubmissionReviewModal } from './SubmissionReviewModal';
 
 interface Props {
   teacher: Teacher;
@@ -36,6 +38,7 @@ interface Props {
 export function TeacherDashboard({ teacher }: Props) {
   const [activeTab, setActiveTab] = useState<'exams' | 'grading' | 'summary'>('exams');
   const [exams, setExams] = useState<Exam[]>([]);
+  const [allExams, setAllExams] = useState<Exam[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,17 +70,21 @@ export function TeacherDashboard({ teacher }: Props) {
   const [gradingAnswers, setGradingAnswers] = useState<Record<string, StudentAnswerItem>>({});
   const [savingGrade, setSavingGrade] = useState(false);
 
+  // Read-Only Submission Review Modal
+  const [reviewSubmission, setReviewSubmission] = useState<Submission | null>(null);
+
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [allExams, allSubs, settings] = await Promise.all([
+      const [fetchedExams, allSubs, settings] = await Promise.all([
         fetchExams(),
         fetchSubmissions({ teacherName: teacher.fullName }),
         getSettings(),
       ]);
       // Filter exams created by this teacher
-      const myExams = allExams.filter((e) => e.teacherId === teacher.id || e.teacherName === teacher.fullName);
+      const myExams = fetchedExams.filter((e) => e.teacherId === teacher.id || e.teacherName === teacher.fullName);
+      setAllExams(fetchedExams);
       setExams(myExams);
       setSubmissions(allSubs);
       setPassThreshold(settings.passPercentage);
@@ -149,6 +156,7 @@ export function TeacherDashboard({ teacher }: Props) {
         };
         await updateExam(updated);
         setExams((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+        setAllExams((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
       } else {
         const created = await createExam({
           title: examTitle.trim(),
@@ -161,6 +169,7 @@ export function TeacherDashboard({ teacher }: Props) {
           questions: examQuestions,
         });
         setExams((prev) => [created, ...prev]);
+        setAllExams((prev) => [created, ...prev]);
       }
       setShowExamModal(false);
     } catch (err: unknown) {
@@ -445,10 +454,20 @@ export function TeacherDashboard({ teacher }: Props) {
                     <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-4 py-3 font-mono font-bold text-blue-700">#{s.id}</td>
                       <td className="px-4 py-3 font-semibold text-slate-900">
-                        {s.studentInfo?.fullName}
-                        <span className="block text-[11px] font-normal text-slate-400">
-                          {s.studentInfo?.age} ປີ, {s.studentInfo?.district}/{s.studentInfo?.province}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setReviewSubmission(s)}
+                          className="group text-left cursor-pointer focus:outline-none"
+                          title="ກົດເພື່ອກວດເບິ່ງລາຍການຂໍ້ສອບແບບ Read-only"
+                        >
+                          <span className="inline-flex items-center gap-1.5 text-blue-700 group-hover:text-blue-900 group-hover:underline font-bold">
+                            <span>{s.studentInfo?.fullName}</span>
+                            <Eye className="w-3.5 h-3.5 text-blue-500 opacity-75 group-hover:opacity-100 shrink-0" />
+                          </span>
+                          <span className="block text-[11px] font-normal text-slate-400">
+                            {s.studentInfo?.age} ປີ, {s.studentInfo?.district}/{s.studentInfo?.province}
+                          </span>
+                        </button>
                       </td>
                       <td className="px-4 py-3 font-medium text-slate-800 max-w-[180px] truncate">
                         {s.examTitle}
@@ -986,6 +1005,20 @@ export function TeacherDashboard({ teacher }: Props) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ========================================================
+          MODAL: READ-ONLY SUBMISSION REVIEW
+      ======================================================== */}
+      {reviewSubmission && (
+        <SubmissionReviewModal
+          submission={reviewSubmission}
+          exam={
+            allExams.find((e) => e.id === reviewSubmission.examId) ||
+            exams.find((e) => e.id === reviewSubmission.examId)
+          }
+          onClose={() => setReviewSubmission(null)}
+        />
       )}
     </div>
   );

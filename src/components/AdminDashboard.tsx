@@ -36,6 +36,7 @@ import {
   saveSystemSecuritySettings,
 } from '../lib/turso';
 import { exportSubmissionsToCSV, exportTeachersToCSV, exportFullBackupCSV } from '../lib/csvExport';
+import { SubmissionReviewModal } from './SubmissionReviewModal';
 
 interface Props {
   onViewCertificate: (sub: Submission) => void;
@@ -641,10 +642,20 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
                       <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="px-4 py-3 font-mono font-bold text-blue-700">#{s.id}</td>
                         <td className="px-4 py-3 font-semibold text-slate-900">
-                          {s.studentInfo?.fullName}
-                          <span className="block text-[10px] font-normal text-slate-400">
-                            {s.studentInfo?.district}, {s.studentInfo?.province}
-                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSub(s)}
+                            className="group text-left cursor-pointer focus:outline-none"
+                            title="ກົດເພື່ອກວດເບິ່ງລາຍການຂໍ້ສອບແບບ Read-only"
+                          >
+                            <span className="inline-flex items-center gap-1.5 text-blue-700 group-hover:text-blue-900 group-hover:underline font-bold">
+                              <span>{s.studentInfo?.fullName}</span>
+                              <Eye className="w-3.5 h-3.5 text-blue-500 opacity-75 group-hover:opacity-100 shrink-0" />
+                            </span>
+                            <span className="block text-[10px] font-normal text-slate-400">
+                              {s.studentInfo?.district}, {s.studentInfo?.province}
+                            </span>
+                          </button>
                         </td>
                         <td className="px-4 py-3 font-medium text-slate-800 max-w-[180px] truncate" title={s.examTitle}>
                           {s.examTitle}
@@ -1173,83 +1184,37 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
         </div>
       )}
 
-      {/* Submission Detail Modal */}
+      {/* Read-Only Submission Detail & Question Breakdown Modal */}
       {selectedSub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs overflow-y-auto">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  {selectedSub.studentInfo?.fullName} (#{selectedSub.id})
-                </h3>
-                <p className="text-xs text-slate-500">{selectedSub.examTitle}</p>
-              </div>
-              <button onClick={() => setSelectedSub(null)} className="text-slate-400 hover:text-slate-600">
-                ✕
-              </button>
-            </div>
-
-            <div className="overflow-y-auto flex-1 mt-4 space-y-3 text-xs pr-1">
-              <div className="p-3 bg-slate-50 rounded-2xl grid grid-cols-2 sm:grid-cols-4 gap-2 text-center font-mono">
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-sans">ຄະແນນປາລະໄນ</span>
-                  <strong>{selectedSub.objectiveScore} / {selectedSub.maxObjectiveScore}</strong>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-sans">ຄະແນນອັດຕະໄນ</span>
-                  <strong>{selectedSub.essayScore} / {selectedSub.maxEssayScore}</strong>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-sans">ຄະແນນລວມ</span>
-                  <strong>{selectedSub.totalScore} / {selectedSub.maxTotalScore}</strong>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-sans">ເປີເຊັນ</span>
-                  <strong className={selectedSub.passed ? 'text-emerald-700' : 'text-rose-700'}>
-                    {selectedSub.percentage}% ({selectedSub.passed ? 'ຜ່ານ' : 'ບໍ່ຜ່ານ'})
-                  </strong>
-                </div>
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-2xl space-y-1">
-                <p>ອາຍຸ: <strong>{selectedSub.studentInfo?.age}</strong> ປີ, ເພດ: <strong>{selectedSub.studentInfo?.gender}</strong></p>
-                <p>ທີ່ຢູ່: <strong>ບ້ານ {selectedSub.studentInfo?.village}, ເມືອງ {selectedSub.studentInfo?.district}, ແຂວງ {selectedSub.studentInfo?.province}</strong></p>
-                {selectedSub.studentInfo?.organization && <p>ໜ່ວຍງານ: <strong>{selectedSub.studentInfo.organization}</strong></p>}
-                <p>ວັນທີສອບເສັງ: <strong>{selectedSub.studentInfo?.examDate || selectedSub.submittedAt?.slice(0, 10)}</strong></p>
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <SubmissionReviewModal
+          submission={selectedSub}
+          exam={exams.find((e) => e.id === selectedSub.examId)}
+          onClose={() => setSelectedSub(null)}
+          footerLeft={
+            <button
+              type="button"
+              onClick={() => handleDeleteSubmission(selectedSub.id)}
+              className="px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+            >
+              ລຶບຜົນສອບ
+            </button>
+          }
+          footerRight={
+            selectedSub.passed ? (
               <button
                 type="button"
-                onClick={() => handleDeleteSubmission(selectedSub.id)}
-                className="px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-xl"
+                onClick={() => {
+                  onViewCertificate(selectedSub);
+                  setSelectedSub(null);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer"
               >
-                ລຶບຜົນສອບ
+                <Printer className="w-3.5 h-3.5" />
+                ພິມໃບຢັ້ງຢືນ
               </button>
-              <div className="flex items-center gap-2">
-                {selectedSub.passed && (
-                  <button
-                    onClick={() => {
-                      onViewCertificate(selectedSub);
-                      setSelectedSub(null);
-                    }}
-                    className="px-4 py-1.5 bg-emerald-600 text-white font-bold text-xs rounded-xl"
-                  >
-                    ພິມໃບຢັ້ງຢືນ
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setSelectedSub(null)}
-                  className="px-4 py-1.5 bg-slate-100 text-xs font-semibold rounded-xl"
-                >
-                  ປິດ
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+            ) : undefined
+          }
+        />
       )}
     </div>
   );
