@@ -148,14 +148,14 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 sm:p-7 shadow-2xl border border-slate-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 sm:p-4 backdrop-blur-xs">
+      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-2xl bg-white p-5 sm:p-7 shadow-2xl border border-slate-200">
         {/* Header */}
-        <div className="text-center pb-5 border-b border-slate-100">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20 mb-3">
-            <BookOpen className="w-7 h-7" />
+        <div className="text-center pb-4 sm:pb-5 border-b border-slate-100">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-500/20 mb-3">
+            <BookOpen className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">ລະບົບສອບເສັງອາສາສະໝັກອອນລາຍ</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">ລະບົບສອບເສັງອາສາສະໝັກອອນລາຍ</h2>
           <p className="text-xs font-semibold text-blue-700 mt-0.5">ໂຮງໝໍແຂວງຈຳປາສັກ (Champasak Provincial Hospital)</p>
           <p className="text-[11px] text-slate-500 mt-1">ເລືອກບົດບາດຂອງທ່ານເພື່ອເຂົ້າສູ່ລະບົບ</p>
         </div>
@@ -174,7 +174,7 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
                 setPassword('');
                 setError(null);
               }}
-              className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-800"
+              className="w-full min-h-[46px] px-3.5 py-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-800"
             >
               <option value="student">ຜູ້ສອບເສັງ (ອາສາສະໝັກ)</option>
               <option value="teacher">ອາຈານ (ຜູ້ອອກຂໍ້ສອບ)</option>
@@ -220,7 +220,7 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
                     setPassword('');
                     setError(null);
                   }}
-                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800"
+                  className="w-full min-h-[46px] px-3.5 py-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800"
                   required
                 >
                   <option value="" disabled>-- ເລືອກຊື່ອາຈານ --</option>
@@ -253,10 +253,10 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
                       : 'ໃສ່ລະຫັດຜ່ານຂອງອາຈານ'
                   }
                   autoComplete="new-password"
-                  className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans"
+                  className="w-full min-h-[46px] pl-9 pr-3.5 py-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans"
                   required
                 />
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
             </div>
           )}
@@ -271,7 +271,7 @@ export function LoginModal({ isOpen, onLoginSuccess }: Props) {
           <button
             type="submit"
             disabled={loading || (role === 'teacher' && teachers.length === 0)}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-semibold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+            className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] disabled:bg-slate-300 text-white font-semibold text-sm sm:text-base rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer"
           >
             {loading ? (
               <>

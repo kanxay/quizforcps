@@ -15,6 +15,8 @@ import {
   ShieldAlert,
   ShieldCheck,
   Eye,
+  LayoutGrid,
+  X,
 } from 'lucide-react';
 import type { Exam, Question, StudentInfo, StudentAnswerItem, Submission, SystemSecuritySettings } from '../types';
 import { createSubmission, getSystemSettings, getStudentProfile, fetchSubmissions } from '../lib/turso';
@@ -61,6 +63,9 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
   // Result state
   const [submissionResult, setSubmissionResult] = useState<Submission | null>(null);
   const [passThreshold, setPassThreshold] = useState(50);
+
+  // Mobile Question Grid Drawer state
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   const draftKey = `lao_exam_draft_${exam.id}`;
 
@@ -240,10 +245,13 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
   const answeredCount = exam.questions.filter((q) => isQuestionAnswered(q)).length;
 
   const scrollToQuestion = (id: string) => {
-    const el = document.getElementById(`q-${id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    setIsMobileNavOpen(false);
+    setTimeout(() => {
+      const el = document.getElementById(`q-${id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
   };
 
   // Final Evaluation & Submission
@@ -365,253 +373,264 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
   };
 
   /* ========================================================
-     VIEW 1: INTAKE PERSONAL DETAILS
+     VIEW 1: FULL-SCREEN EXAMINEE INFORMATION FORM
   ======================================================== */
   if (step === 'intake') {
     return (
-      <div className="w-full max-w-xl mx-auto py-8 px-4">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8">
+      <div className="min-h-screen bg-slate-50 flex flex-col">
+        {/* Compact Full-Screen Mobile Top Bar */}
+        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 sm:px-6 h-14 flex items-center justify-between gap-2">
           <button
+            type="button"
             onClick={onExit}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 mb-4"
+            className="min-h-[44px] inline-flex items-center gap-1.5 px-2 -ml-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-blue-700 transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" />
-            ກັບຄືນລາຍການບົດສອບ
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span>ກັບຄືນເລືອກອາຈານ / ຫົວຂໍ້</span>
           </button>
+          <span className="text-[11px] font-medium text-slate-400 truncate hidden sm:inline">
+            ໂຮງໝໍແຂວງຈຳປາສັກ
+          </span>
+        </div>
 
-          <div className="pb-4 border-b border-slate-100">
-            <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-100">
-              {exam.subject}
-            </span>
-            <h2 className="text-xl font-bold text-slate-900 mt-2">{exam.title}</h2>
-            <p className="text-xs text-slate-500 mt-1">
-              ເວລາສອບເສັງ: <strong>{exam.durationMinutes} ນາທີ</strong> · ຈຳນວນຂໍ້ສອບ: <strong>{exam.questions.length} ຂໍ້</strong>
-            </p>
-          </div>
-
-          <form onSubmit={handleStartExam} className="mt-5 space-y-4 text-xs">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              ຂໍ້ມູນປະຈຳຕົວຂອງຜູ້ສອບເສັງ (Examinee Information)
-            </h3>
-
-            {intakeError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                <span>{intakeError}</span>
-              </div>
-            )}
-
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                ຊື່ ແລະ ນາມສະກຸນ <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={studentInfo.fullName}
-                onChange={(e) => setStudentInfo((prev) => ({ ...prev, fullName: e.target.value }))}
-                placeholder="ທ້າວ / ນາງ..."
-                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                required
-              />
+        <div className="w-full max-w-2xl mx-auto px-3 sm:px-6 py-4 sm:py-8 flex-1">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-8">
+            <div className="pb-4 border-b border-slate-100">
+              <p className="text-xs font-semibold text-blue-700">
+                {exam.teacherName} · {exam.subject}
+              </p>
+              <h2 className="text-lg sm:text-2xl font-bold text-slate-900 mt-1 leading-snug">
+                {exam.title}
+              </h2>
+              <p className="text-xs text-slate-500 mt-1.5">
+                ເວລາສອບເສັງ: <strong className="text-slate-800 font-mono tabular-nums">{exam.durationMinutes} ນາທີ</strong> · ຈຳນວນຂໍ້ສອບ:{' '}
+                <strong className="text-slate-800 font-mono tabular-nums">{exam.questions.length} ຂໍ້</strong>
+              </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleStartExam} className="mt-5 space-y-4 text-xs sm:text-sm">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-800">
+                ຂໍ້ມູນປະຈຳຕົວຂອງຜູ້ສອບເສັງ (Examinee Information)
+              </h3>
+
+              {intakeError && (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs sm:text-sm text-rose-800 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <span>{intakeError}</span>
+                </div>
+              )}
+
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ອາຍຸ (ປີ) <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  ຊື່ ແລະ ນາມສະກຸນ <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
-                  value={studentInfo.age}
-                  onChange={(e) => setStudentInfo((prev) => ({ ...prev, age: e.target.value }))}
-                  placeholder="ເຊັ່ນ: 24"
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                  value={studentInfo.fullName}
+                  onChange={(e) => setStudentInfo((prev) => ({ ...prev, fullName: e.target.value }))}
+                  placeholder="ທ້າວ / ນາງ..."
+                  className="w-full min-h-[46px] px-3.5 py-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                   required
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    ອາຍຸ (ປີ) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={studentInfo.age}
+                    onChange={(e) => setStudentInfo((prev) => ({ ...prev, age: e.target.value }))}
+                    placeholder="ເຊັ່ນ: 24"
+                    className="w-full min-h-[46px] px-3.5 py-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    ເພດ <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={studentInfo.gender}
+                    onChange={(e) => setStudentInfo((prev) => ({ ...prev, gender: e.target.value as 'ຊາຍ' | 'ຍິງ' }))}
+                    className="w-full min-h-[46px] px-3.5 py-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="ຊາຍ">ຊາຍ</option>
+                    <option value="ຍິງ">ຍິງ</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    ບ້ານ <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={studentInfo.village}
+                    onChange={(e) => setStudentInfo((prev) => ({ ...prev, village: e.target.value }))}
+                    placeholder="ບ້ານ..."
+                    className="w-full min-h-[46px] px-3.5 py-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    ເມືອງ <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={studentInfo.district}
+                    onChange={(e) => setStudentInfo((prev) => ({ ...prev, district: e.target.value }))}
+                    placeholder="ເມືອງ..."
+                    className="w-full min-h-[46px] px-3.5 py-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    ແຂວງ <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={studentInfo.province}
+                    onChange={(e) => setStudentInfo((prev) => ({ ...prev, province: e.target.value }))}
+                    placeholder="ແຂວງ..."
+                    className="w-full min-h-[46px] px-3.5 py-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              {isPreFilledFromProfile && (
+                <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-blue-800 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
+                  <span>ດຶງຂໍ້ມູນຈາກໂປຣໄຟລ໌ຂອງທ່ານອັດຕະໂນມັດ (ສາມາດປັບປຸງໄດ້)</span>
+                </div>
+              )}
+
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ເພດ <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  ໜ່ວຍງານ / ອົງການອາສາສະໝັກ (ບໍ່ບັງຄັບ)
                 </label>
-                <select
-                  value={studentInfo.gender}
-                  onChange={(e) => setStudentInfo((prev) => ({ ...prev, gender: e.target.value as 'ຊາຍ' | 'ຍິງ' }))}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                <input
+                  type="text"
+                  value={studentInfo.organization || ''}
+                  onChange={(e) => setStudentInfo((prev) => ({ ...prev, organization: e.target.value }))}
+                  placeholder="ເຊັ່ນ: ໜ່ວຍກູ້ໄພສຸກເສີນ, ສະມາຄົມອາສາສະໝັກ..."
+                  className="w-full min-h-[46px] px-3.5 py-2.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Exam Access Code if enabled */}
+              {systemSecurity?.enableExamCode && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                  <label className="text-xs font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>ລະຫັດຜ່ານເຂົ້າສອບເສັງ (Exam Access Code) <span className="text-rose-500">*</span></span>
+                  </label>
+                  <p className="text-xs text-amber-800 mb-2">
+                    ບົດສອບເສັງນີ້ມີລະບົບປ້ອງກັນ. ກະລຸນາໃສ່ລະຫັດຜ່ານທີ່ໄດ້ຮັບຈາກອາຈານ ຫຼື ຜູ້ດູແລລະບົບ.
+                  </p>
+                  <input
+                    type="password"
+                    value={accessCodeInput}
+                    onChange={(e) => setAccessCodeInput(e.target.value)}
+                    placeholder="ໃສ່ລະຫັດຜ່ານເຂົ້າສອບ..."
+                    className="w-full min-h-[46px] px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl font-mono text-base sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full min-h-[48px] py-3 px-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-sm sm:text-base rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <option value="ຊາຍ">ຊາຍ</option>
-                  <option value="ຍິງ">ຍິງ</option>
-                </select>
+                  <span>ເລີ່ມຕົ້ນສອບເສັງທັນທີ</span>
+                  <Clock className="w-4 h-4" />
+                </button>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ບ້ານ <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={studentInfo.village}
-                  onChange={(e) => setStudentInfo((prev) => ({ ...prev, village: e.target.value }))}
-                  placeholder="ບ້ານ..."
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ເມືອງ <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={studentInfo.district}
-                  onChange={(e) => setStudentInfo((prev) => ({ ...prev, district: e.target.value }))}
-                  placeholder="ເມືອງ..."
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">
-                  ແຂວງ <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={studentInfo.province}
-                  onChange={(e) => setStudentInfo((prev) => ({ ...prev, province: e.target.value }))}
-                  placeholder="ແຂວງ..."
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-            </div>
-
-            {isPreFilledFromProfile && (
-              <div className="p-2.5 bg-blue-50/80 border border-blue-200 rounded-xl text-[11px] text-blue-800 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
-                <span>ດຶງຂໍ້ມູນຈາກໂປຣໄຟລ໌ຂອງທ່ານອັດຕະໂນມັດ (ສາມາດປັບປຸງໄດ້)</span>
-              </div>
-            )}
-
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                ໜ່ວຍງານ / ອົງການອາສາສະໝັກ (ບໍ່ບັງຄັບ)
-              </label>
-              <input
-                type="text"
-                value={studentInfo.organization || ''}
-                onChange={(e) => setStudentInfo((prev) => ({ ...prev, organization: e.target.value }))}
-                placeholder="ເຊັ່ນ: ໜ່ວຍກູ້ໄພສຸກເສີນ, ສະມາຄົມອາສາສະໝັກ..."
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Exam Access Code if enabled */}
-            {systemSecurity?.enableExamCode && (
-              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl">
-                <label className="block text-xs font-bold text-amber-900 mb-1 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-amber-600" />
-                  ລະຫັດຜ່ານເຂົ້າສອບເສັງ (Exam Access Code) <span className="text-rose-500">*</span>
-                </label>
-                <p className="text-[11px] text-amber-800 mb-2">
-                  ບົດສອບເສັງນີ້ມີລະບົບປ້ອງກັນ. ກະລຸນາໃສ່ລະຫັດຜ່ານທີ່ໄດ້ຮັບຈາກອາຈານ ຫຼື ຜູ້ດູແລລະບົບ.
-                </p>
-                <input
-                  type="password"
-                  value={accessCodeInput}
-                  onChange={(e) => setAccessCodeInput(e.target.value)}
-                  placeholder="ໃສ່ລະຫັດຜ່ານເຂົ້າສອບ..."
-                  className="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl font-mono text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  required
-                />
-              </div>
-            )}
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                ເລີ່ມຕົ້ນສອບເສັງທັນທີ
-                <Clock className="w-4 h-4" />
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
     );
   }
 
   /* ========================================================
-     VIEW 2: ACTIVE EXAM ROOM (SINGLE SCROLL + FLOATING NAV)
+     VIEW 2: ACTIVE EXAM ROOM (MOBILE STICKY BOTTOM BAR + DESKTOP SIDEBAR)
   ======================================================== */
   if (step === 'taking') {
     const isTimeUrgent = timeLeft < 300; // less than 5 mins
     const isTimeCritical = timeLeft < 60; // less than 1 min
 
     return (
-      <div className="min-h-screen bg-slate-50 pb-20">
-        {/* Floating Security Tab-Switch Warning Banner */}
+      <div className="min-h-screen bg-slate-50 pb-24 lg:pb-12">
+        {/* Floating Security Tab-Switch Warning Banner (Mobile-safe width) */}
         {showTabWarning && systemSecurity?.detectTabSwitch && (
-          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-rose-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs font-bold border border-rose-400">
-            <ShieldAlert className="w-5 h-5 text-white shrink-0 animate-bounce" />
-            <span>⚠️ ແຈ້ງເຕືອນຄວາມປອດໄພ: ທ່ານໄດ້ສະຫຼັບໜ້າຈໍ ຫຼື ເປີດແຖບອື່ນ ({tabSwitchCount} ຄັ້ງ)! ກະລຸນາຕັ້ງໃຈເຮັດບົດສອບເສັງ.</span>
+          <div className="fixed top-16 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-full sm:max-w-lg z-50 bg-rose-600 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center justify-between gap-3 text-xs font-bold border border-rose-400">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <ShieldAlert className="w-5 h-5 text-white shrink-0 mt-0.5" />
+              <span className="leading-snug">
+                ແຈ້ງເຕືອນຄວາມປອດໄພ: ທ່ານໄດ້ສະຫຼັບໜ້າຈໍ ({tabSwitchCount} ຄັ້ງ)! ກະລຸນາຕັ້ງໃຈເຮັດບົດສອບເສັງ.
+              </span>
+            </div>
             <button
+              type="button"
               onClick={() => setShowTabWarning(false)}
-              className="px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-semibold cursor-pointer shrink-0"
+              className="min-h-[36px] px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-semibold cursor-pointer shrink-0"
             >
               ຮັບຊາບ
             </button>
           </div>
         )}
 
-        {/* Sticky Top Header with Countdown & Progress */}
-        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs px-4 py-3">
-          <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900 truncate max-w-[200px] sm:max-w-md">
+        {/* Compact Sticky Top Bar (56px mobile / 64px desktop) */}
+        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs px-3 sm:px-6 h-14 sm:h-16 flex items-center">
+          <div className="w-full max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 truncate leading-tight">
                 {exam.title}
               </h2>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500 truncate leading-tight">
                 ຜູ້ສອບ: <span className="font-semibold text-slate-800">{studentInfo.fullName}</span>
               </p>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* Security Active Badge */}
-              {systemSecurity?.antiCheatingCopy && (
-                <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-[11px] font-semibold">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>ໂໝດປ້ອງກັນ</span>
-                </div>
-              )}
-
-              {/* Progress pill */}
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* Desktop Progress Text */}
+              <span className="hidden lg:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 whitespace-nowrap">
                 <CheckCircle className="w-3.5 h-3.5 text-blue-600" />
-                <span>ຕອບແລ້ວ {answeredCount} / {exam.questions.length} ຂໍ້</span>
-              </div>
+                ຕອບແລ້ວ <span className="font-mono tabular-nums">{answeredCount}/{exam.questions.length}</span> ຂໍ້
+              </span>
 
               {/* Countdown Timer */}
               <div
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-mono text-xs sm:text-sm font-bold border transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-mono tabular-nums text-xs sm:text-sm font-bold border transition-colors whitespace-nowrap ${
                   isTimeCritical
-                    ? 'bg-rose-50 border-rose-300 text-rose-700 animate-pulse'
+                    ? 'bg-rose-50 border-rose-300 text-rose-700'
                     : isTimeUrgent
                     ? 'bg-amber-50 border-amber-300 text-amber-800'
                     : 'bg-blue-50 border-blue-200 text-blue-800'
                 }`}
               >
-                <Clock className="w-4 h-4" />
+                <Clock className="w-4 h-4 shrink-0" />
                 <span>{formatTimer(timeLeft)}</span>
               </div>
 
-              {/* Submit Button */}
+              {/* Desktop Top Submit Button (Mobile uses Sticky Bottom Bar) */}
               <button
+                type="button"
                 onClick={() => handleFinalSubmit(false)}
                 disabled={isSubmitting}
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+                className="hidden lg:flex items-center gap-1.5 min-h-[40px] px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer whitespace-nowrap"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>ສົ່ງຂໍ້ສອບ</span>
@@ -621,21 +640,21 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
         </div>
 
         {submitError && (
-          <div className="max-w-6xl mx-auto mt-4 px-4">
-            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2">
+          <div className="max-w-6xl mx-auto mt-4 px-3 sm:px-6">
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs sm:text-sm text-rose-800 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
               <span>{submitError}</span>
             </div>
           </div>
         )}
 
-        {/* Exam Body: Split into Questions Flow & Floating Question Grid */}
-        <div className="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        {/* Exam Body: Single Scrollable Column on Mobile, Split with Right Grid on Desktop */}
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 mt-4 sm:mt-6 grid grid-cols-1 lg:grid-cols-4 gap-5 sm:gap-6 items-start">
           {/* Main Questions List */}
           <div
             onContextMenu={(e) => systemSecurity?.antiCheatingCopy && e.preventDefault()}
             onCopy={(e) => systemSecurity?.antiCheatingCopy && e.preventDefault()}
-            className={`lg:col-span-3 space-y-5 ${systemSecurity?.antiCheatingCopy ? 'select-none' : ''}`}
+            className={`lg:col-span-3 space-y-4 sm:space-y-5 ${systemSecurity?.antiCheatingCopy ? 'select-none' : ''}`}
           >
             {exam.questions.map((q, index) => {
               const qNum = index + 1;
@@ -645,30 +664,30 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
                 <div
                   key={q.id}
                   id={`q-${q.id}`}
-                  className={`bg-white rounded-2xl border p-5 sm:p-6 shadow-xs transition-all ${
-                    answered ? 'border-slate-200' : 'border-slate-200'
+                  className={`scroll-mt-20 bg-white rounded-2xl border p-4 sm:p-6 shadow-xs transition-colors ${
+                    answered ? 'border-blue-200/80' : 'border-slate-200'
                   }`}
                 >
                   {/* Question Header */}
-                  <div className="flex items-start justify-between gap-3 mb-3 pb-3 border-b border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-lg bg-blue-600 text-white font-mono font-bold text-xs flex items-center justify-center">
+                  <div className="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-7 h-7 rounded-lg bg-blue-600 text-white font-mono tabular-nums font-bold text-xs flex items-center justify-center shrink-0">
                         {qNum}
                       </span>
-                      <span className="text-xs font-semibold text-slate-500">
+                      <span className="text-xs font-medium text-slate-500 truncate">
                         {q.type === 'single_choice' && 'ເລືອກຄຳຕອບດຽວ'}
                         {q.type === 'multiple_choice' && 'ເລືອກໄດ້ຫຼາຍຄຳຕອບ'}
                         {q.type === 'text' && 'ຂຽນຕອບ'}
                       </span>
                     </div>
 
-                    <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-100">
+                    <span className="font-mono tabular-nums text-xs font-bold text-blue-700 shrink-0">
                       {q.points} ຄະແນນ
                     </span>
                   </div>
 
                   {/* Question Text */}
-                  <p className="text-sm sm:text-base font-bold text-slate-900 leading-relaxed">
+                  <p className="text-sm sm:text-base font-bold text-slate-900 leading-relaxed whitespace-pre-wrap">
                     {q.text}
                   </p>
 
@@ -676,7 +695,7 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
                   <div className="mt-4 space-y-2.5">
                     {/* 1. Single Choice Options */}
                     {q.type === 'single_choice' && q.options && (
-                      <div className="space-y-2">
+                      <div className="space-y-2.5">
                         {q.options.map((opt, optIdx) => {
                           const isSelected = answers[q.id] === optIdx;
                           return (
@@ -684,22 +703,22 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
                               key={optIdx}
                               type="button"
                               onClick={() => handleSingleSelect(q.id, optIdx)}
-                              className={`w-full text-left p-3.5 rounded-xl border text-xs sm:text-sm font-medium transition-all flex items-start gap-3 cursor-pointer ${
+                              className={`w-full min-h-[48px] text-left p-3.5 rounded-xl border text-sm font-medium transition-all flex items-start gap-3 cursor-pointer active:scale-[0.99] ${
                                 isSelected
-                                  ? 'bg-blue-50/80 border-blue-500 text-blue-950 font-semibold shadow-xs ring-1 ring-blue-500/20'
+                                  ? 'bg-blue-50/90 border-blue-500 text-blue-950 font-semibold shadow-xs ring-1 ring-blue-500/20'
                                   : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/70 text-slate-800'
                               }`}
                             >
                               <span
-                                className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 text-xs font-mono font-bold ${
+                                className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 mt-0.5 text-xs font-mono font-bold ${
                                   isSelected
                                     ? 'bg-blue-600 border-blue-600 text-white'
-                                    : 'border-slate-300 text-slate-500'
+                                    : 'bg-white border-slate-300 text-slate-600'
                                 }`}
                               >
                                 {String.fromCharCode(65 + optIdx)}
                               </span>
-                              <span className="flex-1 leading-relaxed">{opt}</span>
+                              <span className="flex-1 leading-relaxed break-words">{opt}</span>
                             </button>
                           );
                         })}
@@ -708,8 +727,8 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
 
                     {/* 2. Multiple Choice Options */}
                     {q.type === 'multiple_choice' && q.options && (
-                      <div className="space-y-2">
-                        <p className="text-[11px] text-blue-600 font-semibold">
+                      <div className="space-y-2.5">
+                        <p className="text-xs text-blue-600 font-semibold">
                           * ສາມາດເລືອກໄດ້ຫຼາຍກວ່າ 1 ຄຳຕອບ (ຄະແນນເຕັມເມື່ອເລືອກຖືກທັງໝົດ)
                         </p>
                         {q.options.map((opt, optIdx) => {
@@ -720,22 +739,22 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
                               key={optIdx}
                               type="button"
                               onClick={() => handleMultipleSelect(q.id, optIdx)}
-                              className={`w-full text-left p-3.5 rounded-xl border text-xs sm:text-sm font-medium transition-all flex items-start gap-3 cursor-pointer ${
+                              className={`w-full min-h-[48px] text-left p-3.5 rounded-xl border text-sm font-medium transition-all flex items-start gap-3 cursor-pointer active:scale-[0.99] ${
                                 isSelected
-                                  ? 'bg-blue-50/80 border-blue-500 text-blue-950 font-semibold shadow-xs ring-1 ring-blue-500/20'
+                                  ? 'bg-blue-50/90 border-blue-500 text-blue-950 font-semibold shadow-xs ring-1 ring-blue-500/20'
                                   : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/70 text-slate-800'
                               }`}
                             >
                               <span
-                                className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 text-xs font-mono font-bold ${
+                                className={`w-6 h-6 rounded-md border flex items-center justify-center shrink-0 mt-0.5 text-xs font-mono font-bold ${
                                   isSelected
                                     ? 'bg-blue-600 border-blue-600 text-white'
-                                    : 'border-slate-300 text-slate-500'
+                                    : 'bg-white border-slate-300 text-slate-600'
                                 }`}
                               >
                                 {isSelected ? '✓' : String.fromCharCode(65 + optIdx)}
                               </span>
-                              <span className="flex-1 leading-relaxed">{opt}</span>
+                              <span className="flex-1 leading-relaxed break-words">{opt}</span>
                             </button>
                           );
                         })}
@@ -745,7 +764,7 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
                     {/* 3. Text / Essay Answer */}
                     {q.type === 'text' && (
                       <div>
-                        <label className="block text-xs font-semibold text-slate-600 mb-1">
+                        <label className="block text-xs font-semibold text-slate-600 mb-1.5">
                           ຄຳຕອບຂອງທ່ານ:
                         </label>
                         <textarea
@@ -753,9 +772,9 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
                           value={(answers[q.id] as string) || ''}
                           onChange={(e) => handleTextChange(q.id, e.target.value)}
                           placeholder="ພິມຄຳຕອບລະອຽດຂອງທ່ານທີ່ນີ້..."
-                          className="w-full p-3.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed font-sans"
+                          className="w-full p-3.5 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed font-sans"
                         />
-                        <p className="mt-1 text-[11px] text-slate-400">
+                        <p className="mt-1.5 text-xs text-slate-400">
                           * ຂໍ້ສອບແບບຂຽນຕອບຈະໄດ້ຮັບການກວດ ແລະ ໃຫ້ຄະແນນໂດຍອາຈານຜູ້ອອກຂໍ້ສອບ
                         </p>
                       </div>
@@ -766,15 +785,15 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
             })}
 
             {/* Bottom Final Submit Trigger */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 text-center shadow-xs">
-              <p className="text-xs text-slate-600 mb-3">
+            <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 text-center shadow-xs">
+              <p className="text-xs sm:text-sm text-slate-600 mb-4">
                 ເມື່ອທ່ານກວດກາຄຳຕອບຄົບຖ້ວນແລ້ວ ກະລຸນາກົດປຸ່ມສົ່ງຂໍ້ສອບດ້ານລຸ່ມນີ້
               </p>
               <button
                 type="button"
                 onClick={() => handleFinalSubmit(false)}
                 disabled={isSubmitting}
-                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer inline-flex items-center gap-2"
+                className="w-full sm:w-auto min-h-[48px] px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer inline-flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
@@ -791,10 +810,10 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
             </div>
           </div>
 
-          {/* Floating/Sticky Question Grid Navigator (Right side on desktop) */}
+          {/* Desktop Floating/Sticky Question Grid Navigator (Right side on lg:+) */}
           <div className="hidden lg:block lg:col-span-1 sticky top-24">
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-bold text-slate-900 mb-3">
                 ແຜນຜັງຂໍ້ສອບ (Question Navigator)
               </h3>
 
@@ -806,7 +825,7 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
                       key={q.id}
                       type="button"
                       onClick={() => scrollToQuestion(q.id)}
-                      className={`h-9 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+                      className={`h-10 rounded-xl font-mono tabular-nums text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
                         answered
                           ? 'bg-blue-600 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -819,19 +838,122 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
                 })}
               </div>
 
-              <div className="pt-3 border-t border-slate-100 space-y-1.5 text-[11px] text-slate-500">
+              <div className="pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-500">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-md bg-blue-600" />
+                  <span className="w-3 h-3 rounded-sm bg-blue-600 shrink-0" />
                   <span>ຕອບແລ້ວ ({answeredCount} ຂໍ້)</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-md bg-slate-200" />
+                  <span className="w-3 h-3 rounded-sm bg-slate-200 shrink-0" />
                   <span>ຍັງບໍ່ທັນຕອບ ({exam.questions.length - answeredCount} ຂໍ້)</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Mobile Sticky Bottom Bar (Thumb Zone: < lg) */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg pb-safe">
+          <div className="h-14 px-3 flex items-center justify-between gap-2.5 max-w-2xl mx-auto">
+            <button
+              type="button"
+              onClick={() => setIsMobileNavOpen(true)}
+              className="flex-1 min-h-[44px] px-3 py-2 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <LayoutGrid className="w-4 h-4 text-blue-600 shrink-0" />
+              <span className="whitespace-nowrap">
+                ເລກຂໍ້ສອບ <span className="font-mono tabular-nums">({answeredCount}/{exam.questions.length})</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleFinalSubmit(false)}
+              disabled={isSubmitting}
+              className="min-h-[44px] px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 active:scale-[0.98] text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 whitespace-nowrap"
+            >
+              <Send className="w-4 h-4" />
+              <span>{isSubmitting ? 'ກຳລັງສົ່ງ...' : 'ສົ່ງຂໍ້ສອບ'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Expandable Bottom Sheet Question Grid Drawer (< lg) */}
+        {isMobileNavOpen && (
+          <div
+            className="lg:hidden fixed inset-0 z-50 flex items-end bg-slate-950/60 backdrop-blur-xs"
+            onClick={() => setIsMobileNavOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="ແຜນຜັງຂໍ້ສອບ"
+          >
+            <div
+              className="w-full bg-white rounded-t-3xl shadow-2xl max-h-[75dvh] flex flex-col pb-safe"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Drag Handle */}
+              <div className="pt-2.5 pb-1">
+                <div className="w-10 h-1.5 bg-slate-300 rounded-full mx-auto" />
+              </div>
+
+              {/* Drawer Header */}
+              <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">ແຜນຜັງຂໍ້ສອບ</h3>
+                  <p className="text-xs text-slate-500">
+                    ຕອບແລ້ວ <strong className="text-blue-700 font-mono tabular-nums">{answeredCount}</strong> /{' '}
+                    <span className="font-mono tabular-nums">{exam.questions.length}</span> ຂໍ້ · ກົດເລກຂໍ້ເພື່ອຂ້າມໄປ
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl cursor-pointer"
+                  aria-label="ປິດແຜນຜັງຂໍ້ສອບ"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable 5-Column Touch Grid */}
+              <div className="overflow-y-auto px-5 py-4 flex-1">
+                <div className="grid grid-cols-5 gap-2.5">
+                  {exam.questions.map((q, i) => {
+                    const answered = isQuestionAnswered(q);
+                    return (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => scrollToQuestion(q.id)}
+                        className={`min-h-[44px] rounded-xl font-mono tabular-nums text-sm font-bold transition-all active:scale-95 cursor-pointer flex items-center justify-center ${
+                          answered
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Legend Footer */}
+              <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between text-xs text-slate-600">
+                <div className="flex items-center gap-4">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-sm bg-blue-600" />
+                    ຕອບແລ້ວ ({answeredCount})
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-sm bg-slate-200" />
+                    ຍັງບໍ່ຕອບ ({exam.questions.length - answeredCount})
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -851,14 +973,14 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
       : new Date().toLocaleString('lo-LA');
 
     return (
-      <div className="w-full max-w-2xl mx-auto py-8 px-4 animate-in fade-in duration-300">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-10 text-center">
+      <div className="w-full max-w-2xl mx-auto py-5 sm:py-10 px-3 sm:px-6">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-lg p-5 sm:p-10 text-center">
           {/* Submission Success Icon Badge */}
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 mb-5 shadow-sm">
-            <CheckCircle className="w-10 h-10" />
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-emerald-100 text-emerald-600 mb-4 sm:mb-5 shadow-xs">
+            <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10" />
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             ສົ່ງບົດສອບເສັງສຳເລັດແລ້ວ
           </h2>
           <p className="text-xs sm:text-sm font-medium text-emerald-700 mt-1">
@@ -870,18 +992,18 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
           </p>
 
           {/* Submission Verification Receipt Card */}
-          <div className="my-6 p-4 sm:p-5 bg-slate-50/90 rounded-2xl border border-slate-200/90 text-left space-y-3 font-sans">
-            <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <div className="my-5 sm:my-6 p-4 sm:p-5 bg-slate-50/90 rounded-2xl border border-slate-200/90 text-left space-y-3 font-sans">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200">
+              <span className="text-xs font-bold text-slate-600">
                 ໃບຢືນຢັນການສົ່ງບົດສອບ (Submission Receipt)
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
-                <CheckCircle className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
+                <CheckCircle className="w-3.5 h-3.5" />
                 ບັນທຶກແລ້ວ
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
               <div>
                 <span className="text-[11px] text-slate-400 block">ຫົວຂໍ້ບົດສອບ</span>
                 <strong className="text-slate-800 font-semibold">{exam.title}</strong>
@@ -908,27 +1030,24 @@ export function StudentExamRoom({ exam, onExit, onViewCertificate }: Props) {
                 </strong>
               </div>
 
-              <div className="sm:col-span-2 pt-1 border-t border-slate-200/60">
+              <div className="sm:col-span-2 pt-2 border-t border-slate-200/60">
                 <span className="text-[11px] text-slate-400 block">ວັນທີ & ເວລາທີ່ສົ່ງ</span>
-                <span className="text-slate-700 font-medium font-mono text-[11px]">
+                <span className="text-slate-700 font-medium font-mono text-xs">
                   {formattedDate}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="p-3 bg-blue-50/60 border border-blue-200/60 rounded-xl text-[11px] text-blue-800 mb-6">
-            💡 ທ່ານສາມາດກົດປຸ່ມດ້ານລຸ່ມເພື່ອອອກຈາກຫ້ອງສອບ ຫຼື ກັບຄືນສູ່ໜ້າລາຍການບົດສອບໄດ້ຢ່າງປອດໄພ.
-          </div>
-
           {/* Action Button */}
           <div className="flex items-center justify-center pt-1">
             <button
+              type="button"
               onClick={onExit}
-              className="flex items-center justify-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              className="w-full sm:w-auto min-h-[48px] flex items-center justify-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 transition-all cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
-              ກັບຄືນໜ້າຫຼັກ / ລາຍການບົດສອບ
+              ກັບຄືນໜ້າເລືອກບົດສອບ
             </button>
           </div>
         </div>

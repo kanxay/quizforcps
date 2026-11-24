@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BookOpen, AlertTriangle, RefreshCw } from 'lucide-react';
-import type { AuthSession, Exam, Submission } from './types';
-import { getTursoConfig, initDatabase, fetchExams } from './lib/turso';
+import type { AuthSession, Exam, Submission, Teacher } from './types';
+import { getTursoConfig, initDatabase, fetchExams, fetchTeachers } from './lib/turso';
 import { Navbar } from './components/Navbar';
 import { LoginModal } from './components/LoginModal';
 import { TursoConfigModal } from './components/TursoConfigModal';
@@ -15,6 +15,7 @@ import { StudentSettingsModal } from './components/StudentSettingsModal';
 export default function App() {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [exams, setExams] = useState<Exam[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loadingExams, setLoadingExams] = useState(false);
 
   // Active view states
@@ -54,10 +55,21 @@ export default function App() {
   const loadExamsList = async () => {
     setLoadingExams(true);
     try {
-      const list = await fetchExams();
-      setExams(list);
+      const [examList, teacherList] = await Promise.all([
+        fetchExams(),
+        fetchTeachers(),
+      ]);
+      setExams(examList);
+      setTeachers(teacherList);
     } catch (err) {
-      console.warn('Exams fetch warn:', err);
+      console.warn('Exams/Teachers fetch warn:', err);
+      // Fallback to cached teachers if offline/transient error
+      try {
+        const cached = localStorage.getItem('emscps_teachers_cache');
+        if (cached) setTeachers(JSON.parse(cached) as Teacher[]);
+      } catch {
+        // ignore
+      }
     } finally {
       setLoadingExams(false);
     }
@@ -167,11 +179,12 @@ export default function App() {
             </button>
           </div>
         ) : session.role === 'student' ? (
-          /* Volunteer Examinee Exam Catalog */
+          /* Volunteer Examinee Teacher -> Exam Selector */
           <StudentExamList
+            teachers={teachers}
             exams={exams}
             onSelectExam={(exam) => setSelectedExam(exam)}
-            onOpenSettings={() => setIsStudentSettingsOpen(true)}
+            onRefresh={loadExamsList}
             loading={loadingExams}
           />
         ) : session.role === 'teacher' && session.teacher ? (

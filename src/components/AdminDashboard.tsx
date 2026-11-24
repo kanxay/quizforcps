@@ -331,33 +331,33 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
   return (
     <div className="w-full max-w-6xl mx-auto py-6 px-4">
       {/* Top Header & Tab Switcher */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-4 sm:p-5 mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-3.5 sm:p-5 mb-6 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl w-full sm:w-auto">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial min-h-[40px] flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 text-xs font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'dashboard' ? 'bg-white text-blue-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <BarChart3 className="w-4 h-4" />
+            <BarChart3 className="w-4 h-4 shrink-0" />
             1) Dashboard
           </button>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial min-h-[40px] flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 text-xs font-semibold rounded-xl transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'settings' ? 'bg-white text-blue-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <SettingsIcon className="w-4 h-4" />
+            <SettingsIcon className="w-4 h-4 shrink-0" />
             2) Setting
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={loadAll}
             disabled={loading}
-            className="p-2 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+            className="min-h-[40px] min-w-[40px] inline-flex items-center justify-center p-2 text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
             title="ໂຫຼດໃໝ່"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -368,25 +368,25 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
               <button
                 onClick={() => exportSubmissionsToCSV(filteredSubmissions)}
                 disabled={filteredSubmissions.length === 0}
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                className="flex-1 sm:flex-initial min-h-[40px] flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
               >
-                <Download className="w-4 h-4" />
-                Export CSV (BOM)
+                <Download className="w-4 h-4 shrink-0" />
+                Export CSV
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors cursor-pointer"
+                className="flex-1 sm:flex-initial min-h-[40px] flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-colors cursor-pointer whitespace-nowrap"
               >
-                <Printer className="w-4 h-4" />
+                <Printer className="w-4 h-4 shrink-0" />
                 ພິມລາຍງານ
               </button>
             </>
           ) : (
             <button
               onClick={() => exportFullBackupCSV(teachers, exams, submissions)}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+              className="flex-1 sm:flex-initial min-h-[40px] flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 shrink-0" />
               Export CSV ສຳຮອງທັງໝົດ
             </button>
           )}
@@ -1106,8 +1106,8 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
 
       {/* Modal: Add/Edit Teacher */}
       {showTeacherModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 sm:p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto bg-white rounded-3xl shadow-2xl border border-slate-200 p-5 sm:p-6">
             <h3 className="text-base font-bold text-slate-900 pb-3 border-b border-slate-100">
               {editingTeacher ? `ແກ້ໄຂອາຈານ #${editingTeacher.id}` : '+ ສ້າງ User ຂອງອາຈານ'}
             </h3>
@@ -1122,7 +1122,7 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
                   value={tFullName}
                   onChange={(e) => setTFullName(e.target.value)}
                   placeholder="ດຣ. ສົມໄຊ ວົງສາ"
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  className="w-full min-h-[44px] px-3.5 py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl"
                   required
                 />
               </div>
@@ -1134,7 +1134,7 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
                   value={tSubject}
                   onChange={(e) => setTSubject(e.target.value)}
                   placeholder="ການປະຖົມພະຍາບານ..."
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  className="w-full min-h-[44px] px-3.5 py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl"
                 />
               </div>
 
@@ -1145,7 +1145,7 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
                   value={tDepartment}
                   onChange={(e) => setTDepartment(e.target.value)}
                   placeholder="ໜ່ວຍກູ້ໄພສຸກເສີນ..."
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  className="w-full min-h-[44px] px-3.5 py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl"
                 />
               </div>
 
@@ -1158,7 +1158,7 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
                   value={tPassword}
                   onChange={(e) => setTPassword(e.target.value)}
                   placeholder="ກຳນົດລະຫັດຜ່ານ..."
-                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono"
+                  className="w-full min-h-[44px] px-3.5 py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl font-mono"
                   required
                 />
               </div>
@@ -1167,14 +1167,14 @@ export function AdminDashboard({ onViewCertificate, onOpenTursoConfig, isTursoCo
                 <button
                   type="button"
                   onClick={() => setShowTeacherModal(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl"
+                  className="min-h-[42px] px-4 py-2 bg-slate-100 text-slate-600 rounded-xl cursor-pointer"
                 >
                   ຍົກເລີກ
                 </button>
                 <button
                   type="submit"
                   disabled={savingTeacher}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl shadow-xs"
+                  className="min-h-[42px] px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl shadow-xs cursor-pointer"
                 >
                   {savingTeacher ? 'ກຳລັງບັນທຶກ...' : 'ບັນທຶກອາຈານ'}
                 </button>

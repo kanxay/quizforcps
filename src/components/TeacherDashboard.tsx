@@ -316,7 +316,7 @@ export function TeacherDashboard({ teacher }: Props) {
 
         <button
           onClick={handleOpenCreateExam}
-          className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+          className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           + ສ້າງບົດສອບເສັງໃໝ່
@@ -324,10 +324,10 @@ export function TeacherDashboard({ teacher }: Props) {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl w-fit mb-6 text-xs font-semibold">
+      <div className="flex items-center gap-1.5 p-1.5 bg-slate-200/70 rounded-2xl w-full sm:w-fit overflow-x-auto mb-6 text-xs font-semibold">
         <button
           onClick={() => setActiveTab('exams')}
-          className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
+          className={`min-h-[40px] px-3.5 sm:px-4 py-2 rounded-xl transition-all whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'exams' ? 'bg-white text-blue-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -335,7 +335,7 @@ export function TeacherDashboard({ teacher }: Props) {
         </button>
         <button
           onClick={() => setActiveTab('grading')}
-          className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
+          className={`min-h-[40px] px-3.5 sm:px-4 py-2 rounded-xl transition-all whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'grading' ? 'bg-white text-blue-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -343,7 +343,7 @@ export function TeacherDashboard({ teacher }: Props) {
         </button>
         <button
           onClick={() => setActiveTab('summary')}
-          className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
+          className={`min-h-[40px] px-3.5 sm:px-4 py-2 rounded-xl transition-all whitespace-nowrap shrink-0 cursor-pointer ${
             activeTab === 'summary' ? 'bg-white text-blue-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -577,15 +577,15 @@ export function TeacherDashboard({ teacher }: Props) {
           MODAL: CREATE / EDIT EXAM
       ======================================================== */}
       {showExamModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs overflow-y-auto">
-          <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 sm:p-7 max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
+          <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-4 sm:p-7 max-h-[92dvh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900">
                 {editingExam ? 'ແກ້ໄຂບົດສອບເສັງ' : 'ສ້າງບົດສອບເສັງໃໝ່'}
               </h3>
               <button
                 onClick={() => setShowExamModal(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+                className="min-h-[40px] min-w-[40px] inline-flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -601,7 +601,7 @@ export function TeacherDashboard({ teacher }: Props) {
                   value={examTitle}
                   onChange={(e) => setExamTitle(e.target.value)}
                   placeholder="ເຊັ່ນ: quizeforcps - ບົດສອບເສັງຄວາມຮູ້ການປະຖົມພະຍາບານ..."
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                  className="w-full min-h-[44px] px-3.5 py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                   required
                 />
               </div>
@@ -616,7 +616,7 @@ export function TeacherDashboard({ teacher }: Props) {
                     value={examSubject}
                     onChange={(e) => setExamSubject(e.target.value)}
                     placeholder="ເຊັ່ນ: ການປະຖົມພະຍາບານເບື້ອງຕົ້ນ"
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full min-h-[44px] px-3.5 py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
@@ -631,7 +631,7 @@ export function TeacherDashboard({ teacher }: Props) {
                     max={240}
                     value={examDuration}
                     onChange={(e) => setExamDuration(Number(e.target.value))}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                    className="w-full min-h-[44px] px-3.5 py-2 text-base sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                     required
                   />
                 </div>
@@ -644,7 +644,7 @@ export function TeacherDashboard({ teacher }: Props) {
                   value={examDescription}
                   onChange={(e) => setExamDescription(e.target.value)}
                   placeholder="ຄຳແນະນຳສຳລັບຜູ້ສອບເສັງ..."
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3.5 py-2 text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -757,13 +757,16 @@ export function TeacherDashboard({ teacher }: Props) {
           MODAL: ADD / EDIT QUESTION
       ======================================================== */}
       {showQuestionModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs overflow-y-auto">
-          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-950/70 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
+          <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 p-4 sm:p-6 max-h-[92dvh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">
                 {editingQuestionIndex !== null ? 'ແກ້ໄຂຂໍ້ສອບ' : 'ເພີ່ມຂໍ້ສອບໃໝ່'}
               </h3>
-              <button onClick={() => setShowQuestionModal(false)}>
+              <button
+                onClick={() => setShowQuestionModal(false)}
+                className="min-h-[40px] min-w-[40px] inline-flex items-center justify-center rounded-lg hover:bg-slate-100 cursor-pointer"
+              >
                 <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
@@ -920,18 +923,21 @@ export function TeacherDashboard({ teacher }: Props) {
           MODAL: GRADE ESSAY / TEXT ANSWERS
       ======================================================== */}
       {gradingSubmission && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs overflow-y-auto">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
+          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 p-4 sm:p-6 max-h-[92dvh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">
+              <div className="min-w-0 pr-2">
+                <h3 className="text-sm font-bold text-slate-900 truncate">
                   ກວດໃຫ້ຄະແນນ: {gradingSubmission.studentInfo?.fullName}
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 truncate">
                   ບົດສອບ: {gradingSubmission.examTitle} (#{gradingSubmission.id})
                 </p>
               </div>
-              <button onClick={() => setGradingSubmission(null)}>
+              <button
+                onClick={() => setGradingSubmission(null)}
+                className="min-h-[40px] min-w-[40px] inline-flex items-center justify-center rounded-lg hover:bg-slate-100 shrink-0 cursor-pointer"
+              >
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>

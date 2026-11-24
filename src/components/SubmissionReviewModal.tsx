@@ -87,11 +87,11 @@ export function SubmissionReviewModal({ submission, exam, onClose, footerLeft, f
       aria-label={`ກວດເບິ່ງບົດສອບເສັງຂອງ ${submission.studentInfo?.fullName || ''}`}
     >
       <div
-        className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden"
+        className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-200 max-h-[92dvh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-3 bg-white shrink-0">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-3 bg-white shrink-0">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-base sm:text-lg font-bold text-slate-900 truncate">
@@ -114,7 +114,7 @@ export function SubmissionReviewModal({ submission, exam, onClose, footerLeft, f
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors shrink-0 cursor-pointer"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors shrink-0 cursor-pointer"
             title="ປິດ"
           >
             <X className="w-5 h-5" />
